@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "libcc"
+version = "0.1.0"
+authors = [
+    { name = "Niklas Birth", email = "birth@posteo.de" },
+]
+#description = "My package description"
+readme = "README.md"
+requires-python = ">=3.7"
+#keywords = ["one", "two"]
+#license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "numpy"
+]
+
+# ... other project metadata fields as specified in:
+#     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+
+[tool.mypy]
+files = "src"
+plugins = "numpy.typing.mypy_plugin"
+
+strict = true
+disallow_any_explicit = true
+disallow_any_generics = true
