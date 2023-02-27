@@ -1,4 +1,4 @@
-# ccpy
+# libcc
 
 Documentation:  [https://n.birth.pages.gwdg.de/libcc/ccpy.html](https://n.birth.pages.gwdg.de/libcc/ccpy.html)
 

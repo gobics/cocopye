@@ -49,7 +49,7 @@ pages:
         - pip install --upgrade pip
         - pip install -r requirements.txt
         - pip install pdoc
-        - pdoc -o public/ src/ccpy
+        - pdoc -o public/ src/libcc
     artifacts:
       paths:
         - public
