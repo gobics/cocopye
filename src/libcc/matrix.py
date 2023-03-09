@@ -37,12 +37,12 @@ class CountMatrix:
             normal_values = np.log2((vec[inds] + eps) / (self._mat[i, inds] + eps))
 
             # Special values where at least one part contains max value (255)
-            inds = np.where(np.logical_or(vec == 255, self._mat[i] == 255))
+            inds = np.where(np.logical_or(vec == 255, self._mat[i] == 255))[0]
             max_values = np.log2((vec[inds] + eps) / (self._mat[i, inds] + eps))
 
             # Count all the values and store them in our matrix
             transformed_mat[i, 0] += np.sum(np.concatenate((normal_values, max_values)) > minmax)
-            transformed_mat[i, 1:] = np.histogram(normal_values, n - 2, range=[-minmax, minmax])[0]
+            transformed_mat[i, 1:] = np.histogram(normal_values, n - 2, range=(-minmax, minmax))[0]
             transformed_mat[i, -1] += np.sum(np.concatenate((normal_values, max_values)) < -minmax)
 
             # Do we need this? TODO
@@ -63,14 +63,14 @@ class CountMatrix:
 
 
 class FeatureMatrix:
-    _mat: npt.NDArray[np.float]
+    _mat: npt.NDArray[np.double]
 
-    def __init__(self, mat: npt.NDArray[np.float]):
+    def __init__(self, mat: npt.NDArray[np.double]):
         assert mat.ndim == 2, "Matrix has to be 2-dimensional"
 
         self._mat = mat
 
-    def mat(self) -> npt.NDArray[np.float]:
+    def mat(self) -> npt.NDArray[np.double]:
         return self._mat
 
 

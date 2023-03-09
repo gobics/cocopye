@@ -1,6 +1,6 @@
 # libcc
 
-Documentation:  [https://n.birth.pages.gwdg.de/libcc/ccpy.html](https://n.birth.pages.gwdg.de/libcc/ccpy.html)
+Documentation:  [https://n.birth.pages.gwdg.de/libcc](https://n.birth.pages.gwdg.de/libcc)
 
 ## Installation
 
