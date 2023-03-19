@@ -1,4 +1,10 @@
-from src.libcc.preprocessing import prodigal, kmer
+"""
+This is a playground for testing new functions. It should not be part of the final application/library.
+"""
+
+from src.libcc.preprocessing import kmer
+from src.libcc.preprocessing import prodigal
+from src.libcc.preprocessing.pfam import uproc
 import typing as tp
 import time
 
@@ -19,3 +25,16 @@ def test_prodigal():
              "/home/nemo/exclude_from_backup/prodigal/subset.fasta",
              "/home/nemo/exclude_from_backup/prodigal/output.fasta",
              True)
+
+
+def test_uproc():
+    uproc_result = uproc("/home/nemo/exclude_from_backup/uproc/uproc-prot",
+          "/home/nemo/exclude_from_backup/uproc/pfam_db",
+          "/home/nemo/exclude_from_backup/uproc/model",
+          "/home/nemo/exclude_from_backup/prodigal/output.fasta",
+        False)
+
+    print(uproc_result.shape)
+
+
+test_uproc()

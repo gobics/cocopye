@@ -42,7 +42,7 @@ class Sequence:
     metadata: str
     """This can be used to store additional information such as FASTA headers."""
     _alphabet: Alphabet
-    _seq: npt.NDArray[np.uint8]
+    _seq: npt.NDArray[np.int8]
 
     def __init__(self, seq: str, alphabet: Alphabet, metadata: str = ""):
         """
@@ -68,7 +68,7 @@ class Sequence:
 
 
 @njit  # type: ignore
-def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> npt.NDArray[np.uint8]:  # TODO: Stop at max_value
     arr = np.zeros(alphabet_size ** k, dtype=np.uint8)
 
     for idx in range(len(seq)):
@@ -81,7 +81,7 @@ def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.uint8]) ->
 
 
 @njit  # type: ignore
-def _numba_kmer_idx(kmer: npt.NDArray[np.uint8], alphabet_size: int) -> int:
+def _numba_kmer_idx(kmer: npt.NDArray[np.int8], alphabet_size: int) -> int:
     kmer_idx = 0
     for c in kmer:
         if c == -1:
@@ -107,9 +107,9 @@ class Alphabet:
             value_type=types.int8
         )
         for i, c in enumerate(bytes(symbols, "ASCII")):
-            self._map[c] = i
+            self._map[c] = np.int8(i)
         for c in bytes(ignored, "ASCII"):
-            self._map[c] = -1
+            self._map[c] = np.int8(-1)
 
     def translate_sequence(self, seq: str) -> npt.NDArray[types.int8]:
         return _numba_translate_sequence(self._map, bytes(seq, "ASCII"))
@@ -119,7 +119,7 @@ class Alphabet:
 
 
 @njit  # type: ignore
-def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.uint8]:
+def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.int8]:
     arr = np.empty(len(seq), dtype=types.int8)
     for idx, c in enumerate(seq):
         arr[idx] = dictx[c]
