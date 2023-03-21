@@ -31,7 +31,7 @@ from Bio import SeqIO
 from numba import njit, types
 from numba.typed import Dict
 
-from ..matrix import CountMatrix
+from ..matrices import QueryMatrix
 
 
 class Sequence:
@@ -136,5 +136,5 @@ def read_fasta_file(filename: str, alphabet: Alphabet) -> tp.List[Sequence]:
     return [Sequence(str(seq_record.seq), alphabet, seq_record.id) for seq_record in SeqIO.parse(filename, "fasta")]
 
 
-def sequences_to_count_matrix(sequences: tp.List[Sequence], k: int) -> CountMatrix:
-    return CountMatrix(np.array([seq.kmer_count(k) for seq in sequences]))
+def sequences_to_query_matrix(sequences: tp.List[Sequence], k: int) -> QueryMatrix:
+    return QueryMatrix(np.array([seq.kmer_count(k) for seq in sequences]))

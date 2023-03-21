@@ -1,10 +1,10 @@
 import subprocess
 import numpy as np
 
-from ..matrix import CountMatrix
+from ..matrices import QueryMatrix
 
 
-def uproc(uproc_bin: str, pfam_dir: str, model_dir: str, infile: str, merge: bool = True) -> CountMatrix:
+def uproc(uproc_bin: str, pfam_dir: str, model_dir: str, infile: str, merge: bool = True) -> QueryMatrix:
     """
     This is a simple wrapper function for uproc-prot. If uproc exits with a non-zero error code, an exception is raised
     containing uprocs stderr output. If the binary cannot be found at the given path, ... (TODO).
@@ -29,7 +29,7 @@ def uproc(uproc_bin: str, pfam_dir: str, model_dir: str, infile: str, merge: boo
     if process.returncode != 0:
         raise Exception(errors)
 
-    return CountMatrix(_count_pfams(result.decode("utf8"), merge))
+    return QueryMatrix(_count_pfams(result.decode("utf8"), merge))
 
 
 def _count_pfams(uproc_result: str, merge: bool = True):

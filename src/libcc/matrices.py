@@ -1,18 +1,44 @@
 from __future__ import annotations
+from typing import TypeVar, Generic
 import numpy as np
 import numpy.typing as npt
 
 
-class CountMatrix:
-    _mat: npt.NDArray[np.uint8]
+T = TypeVar("T")
 
-    def __init__(self, mat: npt.NDArray[np.uint8]):
+
+class Matrix(Generic[T]):
+    """
+    Are doc comments inherited?
+    """
+    _mat: T
+
+    def __init__(self, mat: T):
         assert mat.ndim == 2, "Matrix has to be 2-dimensional"
 
         self._mat = mat
 
-    def nearest_neighbors(self, vec: npt.NDArray[np.uint8], k: int) -> CountMatrix:
-        return CountMatrix(self._mat[self.nearest_neighbors_idx(vec, k), :])
+    def mat(self) -> T:
+        return self._mat
+
+    def save_to_file(self, filename: str) -> None:
+        file_format = filename.split(".")[-1]
+
+        if file_format == "npy":
+            np.save(filename, self._mat)
+        else:
+            np.savetxt(filename, self._mat, delimiter=",")
+
+    def __str__(self) -> str:
+        return str(self._mat)
+
+
+class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
+    def __init__(self, mat: npt.NDArray[np.uint8]):
+        super().__init__(mat)
+
+    def nearest_neighbors(self, vec: npt.NDArray[np.uint8], k: int) -> DatabaseMatrix:
+        return DatabaseMatrix(self._mat[self.nearest_neighbors_idx(vec, k), :])
 
     def nearest_neighbors_idx(self, vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
         num_refs, num_count = self._mat.shape
@@ -25,6 +51,25 @@ class CountMatrix:
             eq_count[idx] = np.sum(np.logical_and(0 < vec < 255, row == vec))
 
         return np.flip(np.argsort(eq_count))[:k]
+
+    def universal_markers_idx(self, threshold: float) -> npt.NDArray[np.uint64]:
+        return np.where(np.count_nonzero(self._mat == 1, axis=0) / self._mat.shape[0] >= threshold)[0]
+
+    def preestimate(self, markers: npt.NDArray[np.uint64], vec: npt.NDArray[np.uint8]) -> (float, float):
+        # TODO: Wie soll das genau berechnet werden? Completeness nur bei marker == 1 oder marker >= 1?
+        # Contamination bei marker > 1? Oder gar keine Vorabschätzung für Contamination?
+        pass
+
+
+class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
+    def __init__(self, mat: npt.NDArray[np.uint8]):
+        super().__init__(mat)
+
+    def preestimates(self, db: DatabaseMatrix, threshold: float) -> npt.NDArray[np.float]:
+        pass
+
+    def estimates(self, db: DatabaseMatrix, k: int) -> npt.NDArray[np.float]:
+        pass
 
     def transform_features(self, vec: npt.NDArray[np.uint8], n: int = 100, minmax: float = 3.) -> FeatureMatrix:
         eps = 1e-8
@@ -50,28 +95,14 @@ class CountMatrix:
 
         return FeatureMatrix(transformed_mat)
 
-    def save_to_file(self, filename: str) -> None:
-        file_format = filename.split(".")[-1]
 
-        if file_format == "npy":
-            np.save(filename, self._mat)
-        else:
-            np.savetxt(filename, self._mat, delimiter=",")
-
-    def __str__(self) -> str:
-        return str(self._mat)
-
-
-class FeatureMatrix:
-    _mat: npt.NDArray[np.double]
-
+class FeatureMatrix(Matrix[npt.NDArray[np.double]]):
     def __init__(self, mat: npt.NDArray[np.double]):
-        assert mat.ndim == 2, "Matrix has to be 2-dimensional"
+        super().__init__(mat)
 
-        self._mat = mat
-
-    def mat(self) -> npt.NDArray[np.double]:
-        return self._mat
+    def neural_net_estimates(self):
+        # Ist diese Funktion so sinnvoll?
+        pass
 
 
 def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
