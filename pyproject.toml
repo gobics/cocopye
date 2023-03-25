@@ -20,12 +20,15 @@ classifiers = [
 dependencies = [
     "numpy==1.23",
     "numba~=0.56.4",
-    "biopython==1.81"
+    "biopython==1.81",
+    "argparse~=1.4.0",
+    "appdirs~=1.4.4",
+    "tomlkit~=0.11.6"
 ]
 
 [project.scripts]
-cctui = "libcc.ui.terminal:main"
-ccgui = "libcc.ui.graphical:main"
+cctui = "cctui:main"
+ccgui = "ccgui:main"
 
 # ... other project metadata fields as specified in:
 #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
