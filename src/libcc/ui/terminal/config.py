@@ -58,6 +58,7 @@ def parse_config(config_file: str = None):
 DEFAULT_CONFIG = """[external]
 prodigal_bin = "prodigal"
 uproc_bin = "uproc-prot"
+uproc_import_bin = "uproc-import"
 uproc_db = "none"
 uproc_models = "none"
 libcc_db = "none"
@@ -71,6 +72,8 @@ prodigal_url_windows = "https://github.com/hyattpd/Prodigal/releases/download/v2
 prodigal_url_linux = "https://github.com/hyattpd/Prodigal/releases/download/v2.6.3/prodigal.linux"
 uproc_src = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0.tar.gz"
 uproc_win = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0-win-x86_64.zip"
+pfam_db = "http://uproc.gobics.de/downloads/db/pfam24.uprocdb.gz"
+model = "http://uproc.gobics.de/downloads/models/model.tar.gz"
 """
 
 
