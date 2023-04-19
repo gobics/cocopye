@@ -1,5 +1,5 @@
 from .config import parse_args, parse_config
-from ..external import check_dependencies
+from ..external import check_and_download_dependencies
 
 
 def main():
@@ -8,4 +8,4 @@ def main():
     args = parse_args()
     config_file, configuration = parse_config(args.config)
 
-    check_dependencies(configuration, config_file)
+    check_and_download_dependencies(configuration, config_file)

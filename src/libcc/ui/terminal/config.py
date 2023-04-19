@@ -3,7 +3,7 @@ import sys
 
 import argparse
 from appdirs import user_config_dir
-from tomlkit import parse
+from tomlkit import parse, dumps
 
 
 def parse_args():
@@ -53,6 +53,16 @@ def parse_config(config_file: str = None):
     except IOError:
         print("I wasn't able to read the config file I just created. This shouldn't happen.")
         sys.exit(1)
+
+
+def change_config(config, file, table, elem, new_value):
+    config[table][elem] = new_value
+
+    f = open(file, "w")
+    f.write(dumps(config))
+    f.close()
+
+    return config
 
 
 DEFAULT_CONFIG = """[external]
