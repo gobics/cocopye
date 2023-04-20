@@ -66,6 +66,7 @@ def check_dependencies(config):
     for lst, identifier, output in checks:
         print(output)
         status[lst].append(identifier)
+    print()
 
     return status[0], status[1], status[2]
 

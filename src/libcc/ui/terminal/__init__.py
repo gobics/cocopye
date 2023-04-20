@@ -9,3 +9,6 @@ def main():
     config_file, configuration = parse_config(args.config)
 
     check_and_download_dependencies(configuration, config_file)
+
+    print("At this point the execution of the tool's main part (the calculation of completeness and contamination)")
+    print("would start. As this is not yet finished, there is currently nothing to see here.")
