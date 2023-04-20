@@ -23,11 +23,11 @@ def check_and_download_dependencies(config, config_file):
     if len(error) > 0:
         # It might be useful to provide automatic solutions for common errors (at least try to redownload the file or
         # provide a more useful error message).
-        print("Error: Some dependencies were found, but they don't seem to work. Please check them manually.\n")
+        print("\nError: Some dependencies were found, but they don't seem to work. Please check them manually.\n")
         sys.exit(1)
 
     if len(missing) > 0:
-        print("Some dependencies are missing.")
+        print("\nSome dependencies are missing.")
         print("If you have already downlaoded them, you can specify their path in the configuration file.")
         print("Apart from that, libcc can try to download them automatically.")
         print()
@@ -71,7 +71,7 @@ def check_dependencies(config):
 
 
 def download_dependencies(config, config_file, missing):
-    from .bin import build_uproc_prot
+    from .bin import build_uproc_prot, download_uproc_win
     from .data import download_pfam_db, download_model
 
     opsys = platform.system()
@@ -106,7 +106,17 @@ def download_dependencies(config, config_file, missing):
                 os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-import")
             )
         elif opsys == "Windows":
-            print("TODO")  # TODO
+            download_uproc_win(config["download"]["uproc_win"], os.path.join(user_data_dir("libcc"), "uproc"))
+
+            config = change_config(
+                config, config_file, "external", "uproc_bin",
+                os.path.join(user_data_dir("libcc"), "uproc", "uproc-prot.exe")
+            )
+
+            config = change_config(
+                config, config_file, "external", "uproc_import_bin",
+                os.path.join(user_data_dir("libcc"), "uproc", "uproc-import.exe")
+            )
 
     if "pfam" in missing:
         download_pfam_db(config["download"]["pfam_db"], config["external"]["uproc_import_bin"])

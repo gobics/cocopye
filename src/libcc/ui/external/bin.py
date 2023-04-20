@@ -1,7 +1,9 @@
 import os
+import shutil
 import subprocess
 import tarfile
 import tempfile
+import zipfile
 
 from ..external import download, _green, _red, _TICK, _CROSS
 
@@ -62,3 +64,15 @@ def build_uproc_prot(url: str, install_dir: str):
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # TODO: hardcoded
         install.wait()
         print("\r- Running make install ✓\n")
+
+
+def download_uproc_win(url: str, install_dir: str):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        download(url, tmpdir, "uproc.zip", "- Downloading UProC")
+        print("- Downloading UProC ✓")
+
+        print("- Extracting archive", end="", flush=True)
+        with zipfile.ZipFile(os.path.join(tmpdir, "uproc.zip"), 'r') as zip_ref:
+            zip_ref.extractall(tmpdir)
+        shutil.move(os.path.join(tmpdir, "uproc-1.2.0-win-x86_64"), install_dir)  # TODO: hardcoded
+        print("\r- Extracting archive ✓\n")

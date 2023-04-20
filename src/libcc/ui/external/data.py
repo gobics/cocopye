@@ -16,7 +16,7 @@ def check_pfam_db(pfam_dir: str):
     if result == "found":
         return 0, "pfam", "  " + _TICK + " Pfam database\t" + _green(result)
     else:
-        return 1 if result == "mising" else 2, "pfam", _CROSS + " Pfam database\t" + _red(result)
+        return 1 if result == "not found" else 2, "pfam", "  " + _CROSS + " Pfam database\t" + _red(result)
 
 
 def check_model(model_dir: str):
@@ -26,7 +26,7 @@ def check_model(model_dir: str):
     if result == "found":
         return 0, "model", "  " + _TICK + " Models\t\t" + _green(result)
     else:
-        return 1 if result == "missing" else 2, "model", _CROSS + " Models\t\t" + _red(result)
+        return 1 if result == "not found" else 2, "model", "  " + _CROSS + " Models\t\t" + _red(result)
 
 
 def _check_folder(folder: str, files):
