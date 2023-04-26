@@ -1,8 +1,11 @@
-from .config import parse_args, parse_config
+from ..config import parse_args, parse_config
 from ..external import check_and_download_dependencies
 
 
 def main():
+    """
+    Entry point of the terminal user interface. This is called by `src/cctui.py`.
+    """
     print("Hello from the terminal user interface.\n")
 
     args = parse_args()

@@ -33,7 +33,7 @@ pytest:
     after_script:
         - pip install anybadge
         - mkdir public
-        - anybadge -l Pytest -v $CI_JOB_STATUS -f public/pytest.svg
+        - anybadge -l Pytest -v $CI_JOB_STATUS -f public/pytest.svg "success"=green "failed"=red
     artifacts:
         paths:
             - public
