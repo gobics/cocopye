@@ -94,7 +94,13 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         return np.flip(np.argsort(eq_count))[:k]
 
-    def estimate(self, vec: npt.NDArray[np.uint8], k: int, frac_eq: float = 0.9) -> (float, float, int):
+    def estimate(
+            self,
+            vec: npt.NDArray[np.uint8],
+            k: int,
+            frac_eq: float = 0.9,
+            knn: DatabaseMatrix = None
+    ) -> (float, float, int):
         """
         Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
         neighbors.
@@ -102,14 +108,15 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         :param k: k (like in k nearest neighbors)
         :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
         marker
+        :param knn: If provided, this is used as the k nearest neighbors
         :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
         (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
         intended for evaluation purposes.
         """
-        knn = self.nearest_neighbors(vec, k).mat()
+        knn = self.nearest_neighbors(vec, k).mat() if knn is None else knn.mat()
         (mode_vals, mode_nums) = st.mode(knn, axis=0, keepdims=False)
 
-        (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(knn * frac_eq)))
+        (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
         n_mark = len(mark_inds)
 
         comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
