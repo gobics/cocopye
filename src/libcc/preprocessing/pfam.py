@@ -7,7 +7,47 @@ import numpy as np
 from Bio import SeqIO
 from tqdm import tqdm
 
-from ..matrices import QueryMatrix
+from ..matrices import QueryMatrix, DatabaseMatrix
+
+
+def create_database_matrix(
+        orf_bin: str,
+        prot_bin: str,
+        pfam_dir: str,
+        model_dir: str,
+        fasta_file: str,
+        sequences: List[str] = None
+) -> DatabaseMatrix:
+    process_orf = subprocess.Popen(
+        orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
+    )
+
+    process_prot = subprocess.Popen(
+        [prot_bin, "-p", "-n", "-F", "hf", pfam_dir, model_dir],  # TODO: Use PF-index instead of internal ID
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
+    )
+
+    count_pfams_async = ThreadPool(processes=1).apply_async(_count_pfams, (process_prot.stdout, False))
+
+    for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
+        print("\r Reading " + str(idx), end="", flush=True)
+        if sequences is not None and record.id not in sequences:
+            continue
+
+        process_orf.stdin.write(">" + record.id + "\n")
+        process_orf.stdin.write(str(record.seq) + "\n")
+
+    process_orf.stdin.close()
+    process_orf.wait()
+
+    pfam_counts, sequences = count_pfams_async.get()
+
+    result, errors = process_prot.communicate()
+
+    if process_prot.returncode != 0:
+        raise Exception(errors)
+
+    return DatabaseMatrix(pfam_counts)
 
 
 def count_pfams(orf_bin: str, prot_bin: str, pfam_dir: str, model_dir: str, bin_folder: str, file_extension: str = "fna") -> (QueryMatrix, List[str]):
@@ -27,7 +67,7 @@ def count_pfams(orf_bin: str, prot_bin: str, pfam_dir: str, model_dir: str, bin_
     without file extension) in the same order as they appear in the QueryMatrix.
     """
     process_orf = subprocess.Popen(
-        [orf_bin], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
+        orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
     )
 
     process_prot = subprocess.Popen(
@@ -57,7 +97,7 @@ def count_pfams(orf_bin: str, prot_bin: str, pfam_dir: str, model_dir: str, bin_
     return QueryMatrix(pfam_counts), sequences
 
 
-def _count_pfams(stdout):
+def _count_pfams(stdout, merge: bool = True):
     pfams = {}
     max_pfam = -1
     sequences = []
@@ -68,7 +108,8 @@ def _count_pfams(stdout):
             break
 
         seq, pfam = line.split(",")[:2]
-        seq = seq.rpartition("$$")[0]
+        if merge:
+            seq = seq.rpartition("$$")[0]
         pfam = int(pfam)
 
         if seq not in pfams:

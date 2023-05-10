@@ -4,7 +4,7 @@ This is a playground for testing new functions. It should not be part of the fin
 
 from src.libcc.preprocessing import kmer
 from src.libcc.preprocessing import prodigal
-from src.libcc.preprocessing.pfam import uproc, count_pfams
+from src.libcc.preprocessing.pfam import count_pfams, create_database_matrix
 import typing as tp
 import time
 
@@ -27,16 +27,6 @@ def test_prodigal():
              True)
 
 
-def test_uproc():
-    uproc_result = uproc("/home/nemo/exclude_from_backup/uproc/uproc-prot",
-          "/home/nemo/exclude_from_backup/uproc/pfam_db",
-          "/home/nemo/exclude_from_backup/uproc/model",
-          "/home/nemo/exclude_from_backup/prodigal/output.fasta",
-        False)
-
-    print(uproc_result.shape)
-
-
 def test_uproc_orf():
     count_mat, sequences = count_pfams("/home/nemo/.local/share/libcc/uproc/bin/uproc-orf", "/home/nemo/exclude_from_backup/uproc/uproc-prot",
           "/home/nemo/exclude_from_backup/uproc/pfam_db",
@@ -47,4 +37,11 @@ def test_uproc_orf():
     count_mat.save_to_file("mat.npy")
 
 
-test_uproc_orf()
+#test_uproc_orf()
+
+mat = create_database_matrix("/home/nemo/.local/share/libcc/uproc/bin/uproc-orf", "/home/nemo/.local/share/libcc/uproc/bin/uproc-prot",
+          "/home/nemo/.local/share/libcc/pfam_db",
+          "/home/nemo/.local/share/libcc/model", "/home/nemo/ExcludeFromBackup/subset.fasta", ["G001314555", "G00024342275", "G001677115"])
+
+print(mat.mat().shape)
+mat.save_to_file("databasemat.npy")
