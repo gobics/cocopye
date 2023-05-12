@@ -139,6 +139,11 @@ def download_dependencies(config, config_file, missing):
                 config, config_file, "external", "uproc_import_bin",
                 os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-import")
             )
+
+            config = change_config(
+                config, config_file, "external", "uproc_orf_bin",
+                os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-orf")
+            )
         elif opsys == "Windows":
             download_uproc_win(config["download"]["uproc_win"], os.path.join(user_data_dir("libcc"), "uproc"))
 
@@ -150,6 +155,11 @@ def download_dependencies(config, config_file, missing):
             config = change_config(
                 config, config_file, "external", "uproc_import_bin",
                 os.path.join(user_data_dir("libcc"), "uproc", "uproc-import.exe")
+            )
+
+            config = change_config(
+                config, config_file, "external", "uproc_orf_bin",
+                os.path.join(user_data_dir("libcc"), "uproc", "uproc-orf.exe")
             )
 
     if "pfam" in missing:

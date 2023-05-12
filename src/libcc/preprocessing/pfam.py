@@ -50,7 +50,14 @@ def create_database_matrix(
     return DatabaseMatrix(pfam_counts)
 
 
-def count_pfams(orf_bin: str, prot_bin: str, pfam_dir: str, model_dir: str, bin_folder: str, file_extension: str = "fna") -> (QueryMatrix, List[str]):
+def count_pfams(
+        orf_bin: str,
+        prot_bin: str,
+        pfam_dir: str,
+        model_dir: str,
+        bin_folder: str,
+        file_extension: str = "fna"
+) -> (QueryMatrix, List[str]):
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
     considered to be one bin. Sequence headers inside the files (most likely contig ids) are ignored.

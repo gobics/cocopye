@@ -15,6 +15,21 @@ def parse_args():
 
     parser.add_argument('-c', '--config')
 
+    subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
+
+    run_parser = subparsers.add_parser("run", help="Calculate contamination and completeness based on Pfam counts")
+
+    run_parser.add_argument("-i", "--infolder", required=True, help="Input folder containing bins in FASTA format")
+    run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
+    run_parser.add_argument("--file-extension", default="fna",
+                            help="File extension of the bin FASTA files (default: fna)")
+
+    db_parser = subparsers.add_parser("database", help="Create a new database matrix")
+
+    db_parser.add_argument("-i", "--infile", required=True)
+    db_parser.add_argument("-o", "--outfile", required=True)
+    db_parser.add_argument("-f", "--filter")
+
     return parser.parse_args()
 
 
@@ -69,6 +84,7 @@ DEFAULT_CONFIG = """[external]
 prodigal_bin = "prodigal"
 uproc_bin = "uproc-prot"
 uproc_import_bin = "uproc-import"
+uproc_orf_bin = "uproc-orf"
 uproc_db = "none"
 uproc_models = "none"
 libcc_db = "none"
