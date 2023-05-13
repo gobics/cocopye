@@ -6,7 +6,7 @@ from ...preprocessing.pfam import create_database_matrix, count_pfams
 
 def main():
     """
-    Entry point of the terminal user interface. This is called by `src/cctui.py`.
+    Entry point of the terminal user interface. This is called by `src/cli.py`.
     """
     # print("Hello from the terminal user interface.\n")
 

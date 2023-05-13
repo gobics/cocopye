@@ -8,7 +8,7 @@ from tomlkit import parse, dumps
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        prog="libcc",
+        prog="cocopye",
         description="A description",
         epilog="Text at the bottom of help"
     )
@@ -45,7 +45,7 @@ def parse_config(config_file: str = None):
             sys.exit(1)
 
     # Otherwise we check several locations for an existing config file
-    for config_file in "libcc.toml", os.path.join(user_config_dir("libcc"), "libcc.toml"):
+    for config_file in "cocopye.toml", os.path.join(user_config_dir("cocopye"), "cocopye.toml"):
         try:
             with open(config_file) as config:
                 return config_file, parse(config.read())
@@ -55,16 +55,16 @@ def parse_config(config_file: str = None):
 
     # If we cannot find any, we create a new default configuration file
     print("Unable to find config file.")
-    os.makedirs(user_config_dir("libcc"), exist_ok=True)
-    f = open(os.path.join(user_config_dir("libcc"), "libcc.toml"), "w")
+    os.makedirs(user_config_dir("cocopye"), exist_ok=True)
+    f = open(os.path.join(user_config_dir("cocopye"), "cocopye.toml"), "w")
     f.write(DEFAULT_CONFIG)
     f.close()
-    print("Created a new default configuration file at ", os.path.join(user_config_dir("libcc"), "libcc.toml.\n"))
+    print("Created a new default configuration file at ", os.path.join(user_config_dir("cocopye"), "cocopye.toml.\n"))
 
     # And then we read it
     try:
-        with open(os.path.join(user_config_dir("libcc"), "libcc.toml")) as config:
-            return os.path.join(user_config_dir("libcc"), "libcc.toml"), parse(config.read())
+        with open(os.path.join(user_config_dir("cocopye"), "cocopye.toml")) as config:
+            return os.path.join(user_config_dir("cocopye"), "cocopye.toml"), parse(config.read())
     except IOError:
         print("I wasn't able to read the config file I just created. This shouldn't happen.")
         sys.exit(1)
@@ -87,7 +87,7 @@ uproc_import_bin = "uproc-import"
 uproc_orf_bin = "uproc-orf"
 uproc_db = "none"
 uproc_models = "none"
-libcc_db = "none"
+cocopye_db = "none"
 
 #####################################################################################################
 # During normal use of the tool, it shouldn't be necessary to change the variables below this line. #

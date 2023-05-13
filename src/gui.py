@@ -1,8 +1,8 @@
-from libcc.ui import terminal
+from cocopye.ui import graphical
 
 
 def main():
-    terminal.main()
+    graphical.main()
 
 
 if __name__ == "__main__":

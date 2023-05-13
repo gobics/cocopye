@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "libcc"
+name = "CoCoPyE"
 version = "0.1.0"
 authors = [
     { name = "Niklas Birth", email = "birth@posteo.de" },
@@ -30,8 +30,8 @@ dependencies = [
 ]
 
 [project.scripts]
-cctui = "cctui:main"
-ccgui = "ccgui:main"
+cocopye = "cli:main"
+cocopye-gui = "gui:main"
 
 # ... other project metadata fields as specified in:
 #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/

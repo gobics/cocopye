@@ -1,4 +1,4 @@
-from src.libcc.preprocessing import prodigal, kmer
+from src.cocopye.preprocessing import prodigal, kmer
 import typing as tp
 import time
 

@@ -40,7 +40,7 @@ def _check_folder(folder: str, files):
 
 def download_pfam_db(url: str, import_bin: str):
     # not using /tmp, because of the large file size
-    with tempfile.TemporaryDirectory(prefix="libcc_", dir=user_cache_dir(None)) as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="cocopye_", dir=user_cache_dir(None)) as tmpdir:
         download(
             url,
             tmpdir,
@@ -58,7 +58,7 @@ def download_pfam_db(url: str, import_bin: str):
         print("- Importing database. This may take a while.", end="", flush=True)
         uproc_import = subprocess.Popen([import_bin,
                                          os.path.join(tmpdir, "pfam.uprocdb"),
-                                         os.path.join(user_data_dir("libcc"), "pfam_db")],
+                                         os.path.join(user_data_dir("cocopye"), "pfam_db")],
                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         uproc_import.wait()
         print("\r- Importing database ✓                             \n")
@@ -76,5 +76,5 @@ def download_model(url: str):
 
         print("- Extracting UProC model")
         tar = tarfile.open(os.path.join(tmpdir, "model.tar.gz"))
-        tar.extractall(user_data_dir("libcc"))
+        tar.extractall(user_data_dir("cocopye"))
         print("\r- Extracting UProC model ✓\n")

@@ -44,7 +44,7 @@ def check_and_download_dependencies(config, config_file):
     if len(missing) > 0:
         print("\nSome dependencies are missing.")
         print("If you have already downlaoded them, you can specify their path in the configuration file.")
-        print("Apart from that, libcc can try to download them automatically.")
+        print("Apart from that, CoCoPyE can try to download them automatically.")
         print()
         download_now = input("Download missing dependencies now? [Y/n] ")
         print()
@@ -117,49 +117,49 @@ def download_dependencies(config, config_file, missing):
         url = config["download"]["prodigal_url_linux"] if opsys == "Linux" \
             else config["download"]["prodigal_url_windows"]
 
-        download(url, os.path.join(user_data_dir("libcc"), "prodigal"), "prodigal", "- Downloading Prodigal")
+        download(url, os.path.join(user_data_dir("cocopye"), "prodigal"), "prodigal", "- Downloading Prodigal")
 
         config = change_config(
             config, config_file, "external", "prodigal_bin",
-            os.path.join(user_data_dir("libcc"), "prodigal", "prodigal")
+            os.path.join(user_data_dir("cocopye"), "prodigal", "prodigal")
         )
 
         print("- Downloading Prodigal ✓\n")
 
     if "uproc" in missing:
         if opsys == "Linux":
-            build_uproc_prot(config["download"]["uproc_src"], os.path.join(user_data_dir("libcc"), "uproc"))
+            build_uproc_prot(config["download"]["uproc_src"], os.path.join(user_data_dir("cocopye"), "uproc"))
 
             config = change_config(
                 config, config_file, "external", "uproc_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-prot")
+                os.path.join(user_data_dir("cocopye"), "uproc", "bin", "uproc-prot")
             )
 
             config = change_config(
                 config, config_file, "external", "uproc_import_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-import")
+                os.path.join(user_data_dir("cocopye"), "uproc", "bin", "uproc-import")
             )
 
             config = change_config(
                 config, config_file, "external", "uproc_orf_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "bin", "uproc-orf")
+                os.path.join(user_data_dir("cocopye"), "uproc", "bin", "uproc-orf")
             )
         elif opsys == "Windows":
-            download_uproc_win(config["download"]["uproc_win"], os.path.join(user_data_dir("libcc"), "uproc"))
+            download_uproc_win(config["download"]["uproc_win"], os.path.join(user_data_dir("cocopye"), "uproc"))
 
             config = change_config(
                 config, config_file, "external", "uproc_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "uproc-prot.exe")
+                os.path.join(user_data_dir("cocopye"), "uproc", "uproc-prot.exe")
             )
 
             config = change_config(
                 config, config_file, "external", "uproc_import_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "uproc-import.exe")
+                os.path.join(user_data_dir("cocopye"), "uproc", "uproc-import.exe")
             )
 
             config = change_config(
                 config, config_file, "external", "uproc_orf_bin",
-                os.path.join(user_data_dir("libcc"), "uproc", "uproc-orf.exe")
+                os.path.join(user_data_dir("cocopye"), "uproc", "uproc-orf.exe")
             )
 
     if "pfam" in missing:
@@ -167,7 +167,7 @@ def download_dependencies(config, config_file, missing):
 
         config = change_config(
             config, config_file, "external", "uproc_db",
-            os.path.join(user_data_dir("libcc"), "pfam_db")
+            os.path.join(user_data_dir("cocopye"), "pfam_db")
         )
 
     if "model" in missing:
@@ -175,7 +175,7 @@ def download_dependencies(config, config_file, missing):
 
         change_config(
             config, config_file, "external", "uproc_models",
-            os.path.join(user_data_dir("libcc"), "model")
+            os.path.join(user_data_dir("cocopye"), "model")
         )
 
 

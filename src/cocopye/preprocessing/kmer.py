@@ -4,7 +4,7 @@ matrix.
 
 Example usage:
 ```python
-from libcc.preprocessing.sequence import Sequence, Alphabet, DNA
+from cocopye.preprocessing.sequence import Sequence, Alphabet, DNA
 
 # Create a new sequence using a given alphabet
 seq1 = Sequence("AACCGGTT", alphabet=DNA)
