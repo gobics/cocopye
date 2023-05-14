@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 from ..matrices import QueryMatrix, DatabaseMatrix
 
+MAX_PFAM = 17126
+
 
 def create_database_matrix(
         orf_bin: str,
@@ -23,7 +25,7 @@ def create_database_matrix(
     )
 
     process_prot = subprocess.Popen(
-        [prot_bin, "-p", "-n", "-F", "hf", pfam_dir, model_dir],  # TODO: Use PF-index instead of internal ID
+        [prot_bin, "-p", "-F", "hf", pfam_dir, model_dir],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
     )
 
@@ -78,7 +80,7 @@ def count_pfams(
     )
 
     process_prot = subprocess.Popen(
-        [prot_bin, "-p", "-n", "-F", "hf", pfam_dir, model_dir],  # TODO: Use PF-index instead of internal ID
+        [prot_bin, "-p", "-F", "hf", pfam_dir, model_dir],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
     )
 
@@ -106,7 +108,6 @@ def count_pfams(
 
 def _count_pfams(stdout, merge: bool = True):
     pfams = {}
-    max_pfam = -1
     sequences = []
 
     for line in iter(stdout.readline, ''):
@@ -117,7 +118,7 @@ def _count_pfams(stdout, merge: bool = True):
         seq, pfam = line.split(",")[:2]
         if merge:
             seq = seq.rpartition("$$")[0]
-        pfam = int(pfam)
+        pfam = int(pfam.strip()[2:])
 
         if seq not in pfams:
             pfams[seq] = []
@@ -125,10 +126,7 @@ def _count_pfams(stdout, merge: bool = True):
 
         pfams[seq].append(pfam)
 
-        if pfam > max_pfam:
-            max_pfam = pfam
-
-    count_mat = np.zeros((len(sequences), max_pfam+1), dtype=np.uint8)
+    count_mat = np.zeros((len(sequences), MAX_PFAM + 1), dtype=np.uint8)
     for idx, seq in enumerate(sequences):
         for pfam in pfams[seq]:
             if count_mat[idx, pfam] == 255:

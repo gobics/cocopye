@@ -47,7 +47,7 @@ def create_database(args, config):
 def run_pfam(args, config):
     db_mat = DatabaseMatrix(load_u8mat_from_file(config["external"]["pfam_db_mat"]))  # TODO: Add config key (external module)
     query_mat, bin_ids = count_pfams(
-        config["external"]["uproc_orf_biN"],
+        config["external"]["uproc_orf_bin"],
         config["external"]["uproc_bin"],
         config["external"]["uproc_db"],
         config["external"]["uproc_models"],
@@ -59,7 +59,7 @@ def run_pfam(args, config):
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
-    outfile = open(args.outfile)
+    outfile = open(args.outfile, "w")
     for idx in range(len(bin_ids)):
-        outfile.write(bin_ids[idx] + "," + estimates[idx, 0] + "," + estimates[idx, 1] + "\n")
+        outfile.write(bin_ids[idx] + "," + str(estimates[idx, 0]) + "," + str(estimates[idx, 1]) + "\n")
     outfile.close()
