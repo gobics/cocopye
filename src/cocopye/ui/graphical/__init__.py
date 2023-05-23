@@ -1,4 +1,4 @@
-def main():
+def main() -> None:
     """
     Entry point of the graphical user interface. This is called by `src/gui.py`.
     """

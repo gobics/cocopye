@@ -1,10 +1,14 @@
+import argparse
+
+from tomlkit import TOMLDocument
+
 from ..config import parse_args, parse_config
 from ..external import check_and_download_dependencies
 from ...matrices import DatabaseMatrix, load_u8mat_from_file
 from ...preprocessing.pfam import create_database_matrix, count_pfams
 
 
-def main():
+def main() -> None:
     """
     Entry point of the terminal user interface. This is called by `src/cli.py`.
     """
@@ -25,7 +29,7 @@ def main():
         print("No subcommand selected. Exiting.")
 
 
-def create_database(args, config):
+def create_database(args: argparse.Namespace, config: TOMLDocument) -> None:
     filter_list = None
     if args.filter is not None:
         filter_file = open(args.filter, "r")
@@ -44,7 +48,7 @@ def create_database(args, config):
     db_mat.save_to_file(args.outfile)
 
 
-def run_pfam(args, config):
+def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
     db_mat = DatabaseMatrix(load_u8mat_from_file(config["external"]["pfam_db_mat"]))  # TODO: Add config key (external module)
     query_mat, bin_ids = count_pfams(
         config["external"]["uproc_orf_bin"],

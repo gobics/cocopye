@@ -10,7 +10,7 @@ A **DatabaseMatrix**, as the name implies, contains the count values of our data
 **QueryMatrix** contains the counts of the input bins (the one we want to determine completeness and contamination for).
 """
 from __future__ import annotations
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
 import scipy.stats as st
@@ -27,7 +27,8 @@ class Matrix(Generic[T]):
     _mat: T
 
     def __init__(self, mat: T):
-        assert mat.ndim == 2, "Matrix has to be 2-dimensional"
+        cast(npt.NDArray[np.generic], mat)
+        assert mat.ndim == 2, "Matrix has to be 2-dimensional"  # type: ignore
 
         self._mat = mat
 
@@ -45,9 +46,9 @@ class Matrix(Generic[T]):
         file_format = filename.split(".")[-1]
 
         if file_format == "npy":
-            np.save(filename, self._mat)
+            np.save(filename, self._mat)  # type: ignore
         else:
-            np.savetxt(filename, self._mat, delimiter=",")
+            np.savetxt(filename, self._mat, delimiter=",")  # type: ignore
 
     def __str__(self) -> str:
         return str(self._mat)
@@ -99,8 +100,8 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
             vec: npt.NDArray[np.uint8],
             k: int,
             frac_eq: float = 0.9,
-            knn: DatabaseMatrix = None
-    ) -> (float, float, int):
+            knn: Optional[DatabaseMatrix] = None
+    ) -> Tuple[float, float, int]:
         """
         Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
         neighbors.
@@ -113,8 +114,8 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
         intended for evaluation purposes.
         """
-        knn = self.nearest_neighbors(vec, k).mat() if knn is None else knn.mat()
-        (mode_vals, mode_nums) = st.mode(knn, axis=0, keepdims=False)
+        knn_mat = self.nearest_neighbors(vec, k).mat() if knn is None else knn.mat()
+        (mode_vals, mode_nums) = st.mode(knn_mat, axis=0, keepdims=False)
 
         (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
         n_mark = len(mark_inds)
@@ -123,7 +124,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         comp = np.mean(comps)
         cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
 
-        return comp, cont, n_mark
+        return float(comp), float(cont), n_mark
 
 
 class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
@@ -137,7 +138,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         super().__init__(mat)
 
-    def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9) -> npt.NDArray[np.float]:
+    def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9) -> npt.NDArray[np.float32]:
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
         the k nearest neighbors.
@@ -148,7 +149,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
-        def func(vec, k_inner, frac_eq_inner):
+        def func(vec: npt.NDArray[np.uint8], k_inner: int, frac_eq_inner: float) -> npt.NDArray[np.float32]:
             comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
             return np.array([comp, cont])
 

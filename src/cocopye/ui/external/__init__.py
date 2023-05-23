@@ -14,15 +14,17 @@ import os
 import platform
 import stat
 import sys
+from typing import Tuple, List
 
 import requests
+from tomlkit import TOMLDocument
 from tqdm import tqdm
 from appdirs import user_data_dir
 
 from ..config import change_config
 
 
-def check_and_download_dependencies(config, config_file):
+def check_and_download_dependencies(config: TOMLDocument, config_file: str) -> None:
     """
     This function checks if all neccessary dependencies are available. If there's something missing, it will offer the
     user to download the missing files automatically. The function writes some status messages to stdout and waits for
@@ -64,7 +66,7 @@ def check_and_download_dependencies(config, config_file):
         print("Check successful. Continung execution of the application.\n")
 
 
-def check_dependencies(config):
+def check_dependencies(config: TOMLDocument) -> Tuple[List[str], List[str], List[str]]:
     """
     This function checks the status of dependencies. It writes an overview of the result to stdout. This function is
     mainly for use by `check_and_download_dependencies`.
@@ -84,7 +86,7 @@ def check_dependencies(config):
         check_model(config["external"]["uproc_models"])
     ]
 
-    status = [[], [], []]  # ok, missing, error
+    status: Tuple[List[str], List[str], List[str]] = ([], [], [])  # ok, missing, error
 
     print("External dependencies:")
     for lst, identifier, output in checks:
@@ -95,7 +97,7 @@ def check_dependencies(config):
     return status[0], status[1], status[2]
 
 
-def download_dependencies(config, config_file, missing):
+def download_dependencies(config: TOMLDocument, config_file: str, missing: List[str]) -> None:
     """
     This tries to download and install missing dependencies. During the process it prints a bunch of status and progress
     messages to stdout. If the detected operating system is not Windows or Linux it will terminate the application.
@@ -179,7 +181,7 @@ def download_dependencies(config, config_file, missing):
         )
 
 
-def download(url: str, dirname: str, fname: str, label: str, chunk_size=1024):
+def download(url: str, dirname: str, fname: str, label: str, chunk_size: int = 1024) -> None:
     """
     An auxiliary function to download a file. It shows a progress bar which gets removed once the download is complete.
 

@@ -1,7 +1,7 @@
 from cocopye.ui import graphical
 
 
-def main():
+def main() -> None:
     graphical.main()
 
 

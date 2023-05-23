@@ -2,11 +2,13 @@ import os
 import sys
 
 import argparse
+from typing import Tuple, Optional
+
 from appdirs import user_config_dir
-from tomlkit import parse, dumps
+from tomlkit import parse, dumps, TOMLDocument
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="cocopye",
         description="A description",
@@ -33,7 +35,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_config(config_file: str = None):
+def parse_config(config_file: Optional[str] = None) -> Tuple[str, TOMLDocument]:
     # If there is an explicit path given, we only check this one and exit if the file
     # cannot be found in the given location
     if config_file is not None:
@@ -70,7 +72,7 @@ def parse_config(config_file: str = None):
         sys.exit(1)
 
 
-def change_config(config, file, table, elem, new_value):
+def change_config(config: TOMLDocument, file: str, table: str, elem: str, new_value: str) -> TOMLDocument:
     config[table][elem] = new_value
 
     f = open(file, "w")

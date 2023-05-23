@@ -29,7 +29,7 @@ pytest:
         - pip install --upgrade pip
         - pip install -r requirements.txt
         - pip install pytest
-        - pytest
+        - python -m pytest
     after_script:
         - pip install anybadge
         - mkdir public

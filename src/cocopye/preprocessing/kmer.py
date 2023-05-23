@@ -67,7 +67,7 @@ class Sequence:
         return _numba_kmer_count(self._alphabet.len(), k, self._seq)
 
 
-@njit  # type: ignore
+# @njit  # type: ignore
 def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> npt.NDArray[np.uint8]:  # TODO: Stop at max_value
     arr = np.zeros(alphabet_size ** k, dtype=np.uint8)
 
@@ -78,6 +78,9 @@ def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> 
         arr[kmer_idx] += 1
 
     return arr
+
+
+_numba_kmer_count = njit(_numba_kmer_count)
 
 
 @njit  # type: ignore
@@ -118,12 +121,15 @@ class Alphabet:
         return len(self.symbols)
 
 
-@njit  # type: ignore
+# @njit  # type: ignore
 def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.int8]:
     arr = np.empty(len(seq), dtype=types.int8)
     for idx, c in enumerate(seq):
         arr[idx] = dictx[c]
     return arr
+
+
+_numba_translate_sequence = njit(_numba_translate_sequence)  # TODO: Check if this is as fast as the decorator
 
 
 DNA: Alphabet = Alphabet("ACGT", "")

@@ -4,11 +4,12 @@ import subprocess
 import tarfile
 import tempfile
 import zipfile
+from typing import Tuple
 
 from ..external import download, _green, _red, _TICK, _CROSS
 
 
-def check_prodigal(prodigal_bin: str):
+def check_prodigal(prodigal_bin: str) -> Tuple[int, str, str]:
     try:
         process = subprocess.Popen(
             [prodigal_bin, '-v'],
@@ -17,12 +18,14 @@ def check_prodigal(prodigal_bin: str):
     except FileNotFoundError:
         return 1, "prodigal", _CROSS + " Prodigal\t\t" + _red("not found")
 
+    assert process.stderr is not None  # MyPy
+
     version = "v" + process.stderr.read().strip().rpartition("V")[2].rpartition(":")[0]
 
     return 0, "prodigal", _TICK + " Prodigal\t\t" + _green(version)
 
 
-def check_uproc(uproc_bin: str):
+def check_uproc(uproc_bin: str) -> Tuple[int, str, str]:
     try:
         process = subprocess.Popen(
             [uproc_bin, '-v'],
@@ -31,12 +34,14 @@ def check_uproc(uproc_bin: str):
     except FileNotFoundError:
         return 1, "uproc", _CROSS + " UProC\t\t\t" + _red("not found")
 
+    assert process.stdout is not None
+
     version = "v" + process.stdout.read().strip().partition("\n")[0].rpartition("version ")[2]
 
     return 0, "uproc", _TICK + " UProC\t\t\t" + _green(version)
 
 
-def build_uproc_prot(url: str, install_dir: str):
+def build_uproc_prot(url: str, install_dir: str) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         download(url, tmpdir, "uproc.tar.gz", "- Downloading UProC repository")
         print("- Downloading UProC repository ✓")
@@ -66,7 +71,7 @@ def build_uproc_prot(url: str, install_dir: str):
         print("\r- Running make install ✓\n")
 
 
-def download_uproc_win(url: str, install_dir: str):
+def download_uproc_win(url: str, install_dir: str) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         download(url, tmpdir, "uproc.zip", "- Downloading UProC")
         print("- Downloading UProC ✓")

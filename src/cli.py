@@ -1,7 +1,7 @@
 from cocopye.ui import terminal
 
 
-def main():
+def main() -> None:
     terminal.main()
 
 

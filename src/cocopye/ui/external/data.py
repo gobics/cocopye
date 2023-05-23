@@ -4,13 +4,14 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from typing import Tuple, List
 
 from appdirs import user_cache_dir, user_data_dir
 
 from ..external import download, _red, _green, _TICK, _CROSS
 
 
-def check_pfam_db(pfam_dir: str):
+def check_pfam_db(pfam_dir: str) -> Tuple[int, str, str]:
     result = _check_folder(pfam_dir, ["fwd.ecurve", "idmap", "prot_thresh_e2", "prot_thresh_e3", "rev.ecurve"])
 
     if result == "found":
@@ -19,7 +20,7 @@ def check_pfam_db(pfam_dir: str):
         return 1 if result == "not found" else 2, "pfam", "  " + _CROSS + " Pfam database\t" + _red(result)
 
 
-def check_model(model_dir: str):
+def check_model(model_dir: str) -> Tuple[int, str, str]:
     result = _check_folder(model_dir,
                            ["aa_probs", "alphabet", "codon_scores", "orf_thresh_e1", "orf_thresh_e2", "substmat"])
 
@@ -29,7 +30,7 @@ def check_model(model_dir: str):
         return 1 if result == "not found" else 2, "model", "  " + _CROSS + " Models\t\t" + _red(result)
 
 
-def _check_folder(folder: str, files):
+def _check_folder(folder: str, files: List[str]) -> str:
     try:
         content = os.listdir(folder)
     except FileNotFoundError:
@@ -38,7 +39,7 @@ def _check_folder(folder: str, files):
     return "found" if all([file in content for file in files]) else "error"
 
 
-def download_pfam_db(url: str, import_bin: str):
+def download_pfam_db(url: str, import_bin: str) -> None:
     # not using /tmp, because of the large file size
     with tempfile.TemporaryDirectory(prefix="cocopye_", dir=user_cache_dir(None)) as tmpdir:
         download(
@@ -64,7 +65,7 @@ def download_pfam_db(url: str, import_bin: str):
         print("\r- Importing database ✓                             \n")
 
 
-def download_model(url: str):
+def download_model(url: str) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         download(
             url,

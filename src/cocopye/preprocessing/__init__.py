@@ -8,7 +8,7 @@ matrices out of it.
 import subprocess
 
 
-def prodigal(prodigal_bin: str, infile: str, outfile: str, show_progress=False) -> int:
+def prodigal(prodigal_bin: str, infile: str, outfile: str, show_progress: bool = False) -> int:
     """
     A wrapper function for prodigal. If the binary is not found at the given path, ...(TODO).
     :param prodigal_bin: Path to prodigal binary
@@ -25,6 +25,8 @@ def prodigal(prodigal_bin: str, infile: str, outfile: str, show_progress=False) 
     )
 
     if show_progress:
+        assert process.stderr is not None  # for MyPy
+
         while process.poll() is None:
             print(process.stderr.readline(), end="")
         print(process.stderr.read(), end="")

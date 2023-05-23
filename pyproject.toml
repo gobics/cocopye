@@ -50,3 +50,7 @@ plugins = "numpy.typing.mypy_plugin"
 strict = true
 disallow_any_explicit = true
 disallow_any_generics = true
+
+[[tool.mypy.overrides]]
+module = ["tomlkit", "Bio", "_io", "numba", "numba.typed", "scipy", "scipy.stats"]
+ignore_missing_imports = true
