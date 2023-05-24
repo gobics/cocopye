@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import zipfile
 from typing import Tuple, List
 
 from appdirs import user_cache_dir, user_data_dir
@@ -28,6 +29,15 @@ def check_model(model_dir: str) -> Tuple[int, str, str]:
         return 0, "model", "  " + _TICK + " Models\t\t" + _green(result)
     else:
         return 1 if result == "not found" else 2, "model", "  " + _CROSS + " Models\t\t" + _red(result)
+
+
+def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
+    result = _check_folder(db_dir, ["mat1234.npy"])
+
+    if result == "found":
+        return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(result)
+    else:
+        return 1 if result == "not found" else 2, "cocopye_db", _CROSS + " CoCoPyE database\t" + _red(result)
 
 
 def _check_folder(folder: str, files: List[str]) -> str:
@@ -79,3 +89,19 @@ def download_model(url: str) -> None:
         tar = tarfile.open(os.path.join(tmpdir, "model.tar.gz"))
         tar.extractall(user_data_dir("cocopye"))
         print("\r- Extracting UProC model ✓\n")
+
+
+def download_cocopye_db(url: str) -> None:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        download(
+            url,
+            tmpdir,
+            "cocopye_db.zip",
+            "- Downloading CoCoPyE database"
+        )
+        print("- Downloading CoCoPyE database ✓")
+
+        print("- Extracting database", end="")
+        with zipfile.ZipFile(os.path.join(tmpdir, "cocopye_db.zip"), 'r') as zip_ref:
+            zip_ref.extractall(os.path.join(user_data_dir("cocopye"), "cocopye_db"))
+        print("\r- Extracting database ✓\n")

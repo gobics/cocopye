@@ -9,6 +9,7 @@ mypy:
         - pip install --upgrade pip
         - pip install -r requirements.txt
         - pip install mypy
+        - mypy --install-types --non-interactive
         - mypy
     after_script:
         - pip install anybadge

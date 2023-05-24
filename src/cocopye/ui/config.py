@@ -102,6 +102,7 @@ uproc_src = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0.tar.gz"
 uproc_win = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0-win-x86_64.zip"
 pfam_db = "http://uproc.gobics.de/downloads/db/pfam24.uprocdb.gz"
 model = "http://uproc.gobics.de/downloads/models/model.tar.gz"
+cocopye_db = "https://user.informatik.uni-goettingen.de/~n.birth/cocopye_db.zip"
 """
 
 

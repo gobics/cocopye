@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from tomlkit import TOMLDocument
 
@@ -49,7 +50,7 @@ def create_database(args: argparse.Namespace, config: TOMLDocument) -> None:
 
 
 def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
-    db_mat = DatabaseMatrix(load_u8mat_from_file(config["external"]["pfam_db_mat"]))  # TODO: Add config key (external module)
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "mat1234.npy")))
     query_mat, bin_ids = count_pfams(
         config["external"]["uproc_orf_bin"],
         config["external"]["uproc_bin"],
