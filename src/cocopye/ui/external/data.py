@@ -85,9 +85,9 @@ def download_model(url: str) -> None:
         )
         print("- Downloading UProc Model ✓")
 
-        print("- Extracting UProC model")
-        tar = tarfile.open(os.path.join(tmpdir, "model.tar.gz"))
-        tar.extractall(user_data_dir("cocopye"))
+        print("- Extracting UProC model", end="", flush=True)
+        with tarfile.open(os.path.join(tmpdir, "model.tar.gz")) as tar:
+            tar.extractall(user_data_dir("cocopye"))
         print("\r- Extracting UProC model ✓\n")
 
 
@@ -101,7 +101,7 @@ def download_cocopye_db(url: str) -> None:
         )
         print("- Downloading CoCoPyE database ✓")
 
-        print("- Extracting database", end="")
+        print("- Extracting database", end="", flush=True)
         with zipfile.ZipFile(os.path.join(tmpdir, "cocopye_db.zip"), 'r') as zip_ref:
             zip_ref.extractall(os.path.join(user_data_dir("cocopye"), "cocopye_db"))
         print("\r- Extracting database ✓\n")
