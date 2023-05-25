@@ -32,6 +32,8 @@ def parse_args() -> argparse.Namespace:
     db_parser.add_argument("-o", "--outfile", required=True)
     db_parser.add_argument("-f", "--filter")
 
+    cleanup_parser = subparsers.add_parser("cleanup", help="Remove automatically downloaded files")
+
     return parser.parse_args()
 
 

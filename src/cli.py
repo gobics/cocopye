@@ -1,3 +1,5 @@
+import sys
+
 from cocopye.ui import terminal
 
 
@@ -6,4 +8,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nInterrupted.")
+        sys.exit(130)
