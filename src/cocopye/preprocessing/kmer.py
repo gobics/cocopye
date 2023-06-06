@@ -24,14 +24,18 @@ count_matrix = sequences_to_count_matrix(sequences, 4)
 """
 
 from __future__ import annotations
+
+import sys
+
 import numpy as np
 import numpy.typing as npt
 import typing as tp
+from typing import Tuple, List
 from Bio import SeqIO
 from numba import njit, types
 from numba.typed import Dict
 
-from ..matrices import QueryMatrix
+from ..matrices import QueryMatrix, DatabaseMatrix
 
 
 class Sequence:
@@ -74,6 +78,8 @@ def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> 
     for idx in range(len(seq)):
         kmer_idx = _numba_kmer_idx(seq[idx:idx+k], alphabet_size)
         if kmer_idx == -1:
+            continue
+        if arr[kmer_idx] == 255:
             continue
         arr[kmer_idx] += 1
 
@@ -125,6 +131,8 @@ class Alphabet:
 def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.int8]:
     arr = np.empty(len(seq), dtype=types.int8)
     for idx, c in enumerate(seq):
+        if c not in dictx:
+            print(c)
         arr[idx] = dictx[c]
     return arr
 
@@ -134,8 +142,36 @@ _numba_translate_sequence = njit(_numba_translate_sequence)  # TODO: Check if th
 
 DNA: Alphabet = Alphabet("ACGT", "")
 """`Alphabet("ACGT", "")`"""
-PROTEIN: Alphabet = Alphabet("ARNDCEQGHILKMFPSTWYV", "X$*")
-"""`Alphabet("ARNDCEQGHILKMFPSTWYV", "X$*")`"""
+PROTEIN: Alphabet = Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")
+"""`Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")`"""
+
+
+def create_database_matrix(
+        fasta_file: str,
+        alphabet: Alphabet = PROTEIN,
+        sequences: tp.Optional[tp.List[str]] = None,
+        k: int = 4
+) -> DatabaseMatrix:
+    counts = []
+
+    for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
+        print("\r Reading " + str(idx), end="", flush=True)
+        if sequences is not None and record.id not in sequences:
+            continue
+
+        seq = Sequence(str(record.seq), alphabet)
+        counts.append(seq.kmer_count(k))
+
+    return DatabaseMatrix(np.array(counts, dtype=np.uint8))
+
+
+def count_kmers(
+        binfolder: str,
+        file_extension: str = "fna",
+        alphabet: Alphabet = PROTEIN,
+        k: int = 4
+) -> Tuple[QueryMatrix, List[str]]:
+    pass  # TODO
 
 
 def read_fasta_file(filename: str, alphabet: Alphabet) -> tp.List[Sequence]:

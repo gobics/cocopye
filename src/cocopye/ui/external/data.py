@@ -32,7 +32,7 @@ def check_model(model_dir: str) -> Tuple[int, str, str]:
 
 
 def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
-    result = _check_folder(db_dir, ["mat1234.npy"])
+    result = _check_folder(db_dir, ["mat1234.npy", "kmer_mat1234.npy"])
 
     if result == "found":
         return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(result)
