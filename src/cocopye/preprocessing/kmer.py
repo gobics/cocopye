@@ -25,6 +25,7 @@ count_matrix = sequences_to_count_matrix(sequences, 4)
 
 from __future__ import annotations
 
+import os
 import sys
 
 import numpy as np
@@ -34,6 +35,7 @@ from typing import Tuple, List
 from Bio import SeqIO
 from numba import njit, types
 from numba.typed import Dict
+from tqdm import tqdm
 
 from ..matrices import QueryMatrix, DatabaseMatrix
 
@@ -116,9 +118,9 @@ class Alphabet:
             value_type=types.int8
         )
         for i, c in enumerate(bytes(symbols, "ASCII")):
-            self._map[c] = np.int8(i)
+            self._map[types.byte(c)] = types.int8(i)
         for c in bytes(ignored, "ASCII"):
-            self._map[c] = np.int8(-1)
+            self._map[types.byte(c)] = types.int8(-1)
 
     def translate_sequence(self, seq: str) -> npt.NDArray[types.int8]:
         return _numba_translate_sequence(self._map, bytes(seq, "ASCII"))
@@ -166,12 +168,20 @@ def create_database_matrix(
 
 
 def count_kmers(
-        binfolder: str,
+        bin_folder: str,
         file_extension: str = "fna",
         alphabet: Alphabet = PROTEIN,
         k: int = 4
 ) -> Tuple[QueryMatrix, List[str]]:
-    pass  # TODO
+    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
+    counts = []
+
+    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Counting Kmers"):
+        seq_str = "$".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
+        seq = Sequence(seq_str, alphabet, bin_id)
+        counts.append(seq.kmer_count(k))
+
+    return QueryMatrix(np.array(counts, dtype=np.uint8)), bins
 
 
 def read_fasta_file(filename: str, alphabet: Alphabet) -> tp.List[Sequence]:

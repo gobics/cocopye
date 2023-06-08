@@ -21,7 +21,10 @@ def main() -> None:
     """
     Entry point of the terminal user interface. This is called by `src/cli.py`.
     """
-    print("Welcome to CoCoPyE v" + pkg_resources.get_distribution('CoCoPyE').version + ".\n")
+    try:
+        print("Welcome to CoCoPyE v" + pkg_resources.get_distribution('CoCoPyE').version + ".\n")
+    except pkg_resources.DistributionNotFound:
+        print("Welcome to CoCoPyE.\n")
 
     args = parse_args()
     config_file, configuration = parse_config(args.config)
@@ -89,7 +92,7 @@ def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
 
 def run_kmer(args: argparse.Namespace, config: TOMLDocument):
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmer_mat1234.npy")))
-    query_mat, bin_ids = count_kmers(args.infolder, args.file_externsion)  # TODO
+    query_mat, bin_ids = count_kmers(args.infolder, args.file_extension)
 
     run(db_mat, query_mat, bin_ids, args.outfile)  # TODO: knn mit range
 
