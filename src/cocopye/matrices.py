@@ -14,7 +14,7 @@ from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
 import scipy.stats as st
-
+from numba import njit
 
 T = TypeVar("T")
 
@@ -84,13 +84,26 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         :return: A numpy array containing the indices of the nearest neighbors.
         """
-        num_refs, num_count = self._mat.shape
+        return DatabaseMatrix.nearest_neighbors_idx_njit(self._mat, vec, k)
+
+    @njit
+    def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+        """
+        Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
+        `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
+        not the actual neighbors.
+
+        Parameters are the same as of `nearest_neighbors`.
+
+        :return: A numpy array containing the indices of the nearest neighbors.
+        """
+        num_refs, num_count = mat.shape
 
         assert vec.ndim == 1, "Vector has to be 1-dimensional"
         assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
 
         eq_count = np.zeros(num_refs)
-        for idx, row in enumerate(self._mat):
+        for idx, row in enumerate(mat):
             eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, row == vec))
 
         return np.flip(np.argsort(eq_count))[:k]
@@ -126,6 +139,78 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         return float(comp), float(cont), n_mark
 
+    @njit
+    def estimate_njit(
+            mat: npt.NDArray[np.uint8],
+            vec: npt.NDArray[np.uint8],
+            k: int,
+            frac_eq: float = 0.9,
+            knn: Optional[npt.NDArray[np.uint8]] = None
+    ) -> Tuple[float, float, int]:
+        """
+        Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
+        neighbors.
+        :param vec: Input vector
+        :param k: k (like in k nearest neighbors)
+        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
+        marker
+        :param knn: If provided, this is used as the k nearest neighbors
+        :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
+        (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
+        intended for evaluation purposes.
+        """
+        knn_mat = knn
+        if knn is None:
+            knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)
+            knn_mat = mat[knn_mat_idx, :]
+
+        #(mode_vals, mode_nums) = st.mode(knn_mat, axis=0, keepdims=False)
+        (mode_vals, mode_nums) = mode(knn_mat)
+
+        (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
+        n_mark = len(mark_inds)
+
+        comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
+        comp = np.mean(comps)
+        cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
+
+        return float(comp), float(cont), n_mark
+
+
+@njit
+def mode(knn_mat: npt.NDArray[np.uint8]):  # TODO
+    mode_vals, mode_nums = np.zeros(knn_mat.shape[1]),  np.zeros(knn_mat.shape[1])
+
+    for idx, arr in enumerate(knn_mat.T):
+        counts = np.bincount(arr)
+        mode_vals[idx] = np.max(counts)
+        mode_nums[idx] = np.argmax(counts)
+
+    return mode_vals, mode_nums
+
+
+@njit
+def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+    """
+    Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
+    `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
+    not the actual neighbors.
+
+    Parameters are the same as of `nearest_neighbors`.
+
+    :return: A numpy array containing the indices of the nearest neighbors.
+    """
+    num_refs, num_count = mat.shape
+
+    assert vec.ndim == 1, "Vector has to be 1-dimensional"
+    assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
+
+    eq_count = np.zeros(num_refs)
+    for idx, row in enumerate(mat):
+        eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, row == vec))
+
+    return np.flip(np.argsort(eq_count))[:k]
+
 
 class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
@@ -150,7 +235,8 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         first element ist the completeness and the second one the contamination estimate.
         """
         def func(vec: npt.NDArray[np.uint8], k_inner: int, frac_eq_inner: float) -> npt.NDArray[np.float32]:
-            comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
+            #comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
+            comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), vec, k_inner, frac_eq_inner)
             return np.array([comp, cont])
 
         return np.apply_along_axis(func, 1, self.mat(), k, frac_eq)
