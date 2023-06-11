@@ -14,8 +14,8 @@ from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
 import scipy.stats as st
-from numba import njit
-from tqdm import tqdm
+from numba import njit, prange
+from numba_progress import ProgressBar
 
 T = TypeVar("T")
 
@@ -85,29 +85,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         :return: A numpy array containing the indices of the nearest neighbors.
         """
-        return DatabaseMatrix.nearest_neighbors_idx_njit(self._mat, vec, k)
-
-    @njit
-    def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
-        """
-        Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
-        `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
-        not the actual neighbors.
-
-        Parameters are the same as of `nearest_neighbors`.
-
-        :return: A numpy array containing the indices of the nearest neighbors.
-        """
-        num_refs, num_count = mat.shape
-
-        assert vec.ndim == 1, "Vector has to be 1-dimensional"
-        assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
-
-        eq_count = np.zeros(num_refs)
-        for idx, row in enumerate(mat):
-            eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, row == vec))
-
-        return np.flip(np.argsort(eq_count))[:k]
+        return nearest_neighbors_idx_njit(self._mat, vec, k)
 
     def estimate(
             self,
@@ -128,58 +106,133 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
         intended for evaluation purposes.
         """
-        knn_mat = self.nearest_neighbors(vec, k).mat() if knn is None else knn.mat()
-        (mode_vals, mode_nums) = st.mode(knn_mat, axis=0, keepdims=False)
+        if knn is not None:
+            knn = knn.mat()
+        return estimate_njit(self.mat(), vec, k, frac_eq, knn)
 
-        (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
-        n_mark = len(mark_inds)
 
-        comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
-        comp = np.mean(comps)
-        cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
-
-        return float(comp), float(cont), n_mark
-
-    @njit
-    def estimate_njit(
-            mat: npt.NDArray[np.uint8],
-            vec: npt.NDArray[np.uint8],
-            k: int,
-            frac_eq: float = 0.9,
-            knn: Optional[npt.NDArray[np.uint8]] = None
-    ) -> Tuple[float, float, int]:
+class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
+    """
+    TODO: Description
+    """
+    def __init__(self, mat: npt.NDArray[np.uint8]):
         """
-        Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
-        neighbors.
-        :param vec: Input vector
-        :param k: k (like in k nearest neighbors)
+        :param mat: 2-dimensional numpy matrix. Rows are expected to represent sequences/bins while columns are Pfams or
+        kmers.
+        """
+        super().__init__(mat)
+
+    def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9) -> npt.NDArray[np.float32]:
+        """
+        Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
+        the k nearest neighbors.
+        :param db: Database used to obtain the neighbors
+        :param k: k for k nearest neighbors
         :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
         marker
-        :param knn: If provided, this is used as the k nearest neighbors
-        :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
-        (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
-        intended for evaluation purposes.
+        :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
+        first element ist the completeness and the second one the contamination estimate.
         """
-        knn_mat = knn
-        if knn is None:
-            knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)
-            knn_mat = mat[knn_mat_idx, :]
+        with ProgressBar(total=self.mat().shape[0], ncols=100, desc="Some description") as progress_bar:
+            result = estimates_njit(self.mat(), db.mat(), k, frac_eq, progress_bar)
+        return result
 
-        #(mode_vals, mode_nums) = st.mode(knn_mat, axis=0, keepdims=False)
-        (mode_vals, mode_nums) = mode(knn_mat)
 
-        (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
-        n_mark = len(mark_inds)
+@njit(nogil=True, parallel=True)
+def estimates_njit(query_mat, db_mat, k, frac_eq, progress_bar):
+    result = np.zeros((query_mat.shape[0], 2))
 
-        comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
-        comp = np.mean(comps)
-        cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
+    for idx in prange(len(query_mat)):
+        comp, cont, num = estimate_njit(db_mat, query_mat[idx], k, frac_eq)
+        result[idx] = np.array([comp, cont])
+        progress_bar.update(1)
 
-        return float(comp), float(cont), n_mark
+    return result
+
+
+def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
+    """
+    This is just a convenience function to load a numpy matrix from a file. If it doesn't suit your requirements, just
+    use numpy.load or numpy.loadtxt directly.
+    :param filename: Filename of the matrix file. If the extension is .npy it is assumed that the content is in binary
+    format, otherwise it should be csv.
+    :return: The loaded matrix as a numpy array
+    """
+    file_format = filename.split(".")[-1]
+
+    mat: npt.NDArray[np.uint8]
+    if file_format == "npy":
+        mat = np.load(filename)
+    else:
+        mat = np.loadtxt(filename, delimiter=",", dtype=np.uint8)
+
+    return mat
+
+
+# === NJIT FUNCTIONS ===================================================================================================
+
+@njit
+def estimate_njit(
+        mat: npt.NDArray[np.uint8],
+        vec: npt.NDArray[np.uint8],
+        k: int,
+        frac_eq: float = 0.9,
+        knn: Optional[npt.NDArray[np.uint8]] = None
+) -> Tuple[float, float, int]:
+    """
+    Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
+    neighbors.
+    :param vec: Input vector
+    :param k: k (like in k nearest neighbors)
+    :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
+    marker
+    :param knn: If provided, this is used as the k nearest neighbors
+    :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
+    (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
+    intended for evaluation purposes.
+    """
+    knn_mat = knn
+    if knn is None:
+        knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)
+        knn_mat = mat[knn_mat_idx, :]
+
+    (mode_vals, mode_nums) = mode(knn_mat)
+
+    (mark_inds,) = np.where(np.logical_and(mode_vals > 0, mode_nums >= round(k * frac_eq)))
+    n_mark = len(mark_inds)
+
+    comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
+    comp = np.mean(comps)
+    cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
+
+    return float(comp), float(cont), n_mark
 
 
 @njit
-def mode(knn_mat: npt.NDArray[np.uint8]):  # TODO
+def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+    """
+    Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
+    `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
+    not the actual neighbors.
+
+    Parameters are the same as of `nearest_neighbors`.
+
+    :return: A numpy array containing the indices of the nearest neighbors.
+    """
+    num_refs, num_count = mat.shape
+
+    assert vec.ndim == 1, "Vector has to be 1-dimensional"
+    assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
+
+    eq_count = np.zeros(num_refs)
+    for idx, row in enumerate(mat):
+        eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, row == vec))
+
+    return np.flip(np.argsort(eq_count))[:k]
+
+
+@njit
+def mode(knn_mat: npt.NDArray[np.uint8]):
     mode_vals, mode_nums = np.zeros(knn_mat.shape[1]),  np.zeros(knn_mat.shape[1])
 
     for idx, arr in enumerate(knn_mat.T):
@@ -211,64 +264,6 @@ def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.u
         eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, row == vec))
 
     return np.flip(np.argsort(eq_count))[:k]
-
-
-class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
-    """
-    TODO: Description
-    """
-    def __init__(self, mat: npt.NDArray[np.uint8]):
-        """
-        :param mat: 2-dimensional numpy matrix. Rows are expected to represent sequences/bins while columns are Pfams or
-        kmers.
-        """
-        super().__init__(mat)
-
-    def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9) -> npt.NDArray[np.float32]:
-        """
-        Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
-        the k nearest neighbors.
-        :param db: Database used to obtain the neighbors
-        :param k: k for k nearest neighbors
-        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
-        marker
-        :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
-        first element ist the completeness and the second one the contamination estimate.
-        """
-        #def func(vec: npt.NDArray[np.uint8], k_inner: int, frac_eq_inner: float) -> npt.NDArray[np.float32]:
-        #    #comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
-        #    comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), vec, k_inner, frac_eq_inner)
-        #    print("bla")
-        #    return np.array([comp, cont])
-
-        #return np.apply_along_axis(func, 1, self.mat(), k, frac_eq)
-
-        result = []
-
-        for idx, row in tqdm(enumerate(self.mat())):
-            comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), row, k, frac_eq)
-            result.append(np.array([comp, cont]))
-
-        return np.array(result)
-
-
-def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
-    """
-    This is just a convenience function to load a numpy matrix from a file. If it doesn't suit your requirements, just
-    use numpy.load or numpy.loadtxt directly.
-    :param filename: Filename of the matrix file. If the extension is .npy it is assumed that the content is in binary
-    format, otherwise it should be csv.
-    :return: The loaded matrix as a numpy array
-    """
-    file_format = filename.split(".")[-1]
-
-    mat: npt.NDArray[np.uint8]
-    if file_format == "npy":
-        mat = np.load(filename)
-    else:
-        mat = np.loadtxt(filename, delimiter=",", dtype=np.uint8)
-
-    return mat
 
 
 # ======================================================================================================================
