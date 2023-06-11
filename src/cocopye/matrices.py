@@ -15,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 import scipy.stats as st
 from numba import njit
+from tqdm import tqdm
 
 T = TypeVar("T")
 
@@ -183,8 +184,8 @@ def mode(knn_mat: npt.NDArray[np.uint8]):  # TODO
 
     for idx, arr in enumerate(knn_mat.T):
         counts = np.bincount(arr)
-        mode_vals[idx] = np.max(counts)
-        mode_nums[idx] = np.argmax(counts)
+        mode_vals[idx] = np.argmax(counts)
+        mode_nums[idx] = np.max(counts)
 
     return mode_vals, mode_nums
 
@@ -234,12 +235,21 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
-        def func(vec: npt.NDArray[np.uint8], k_inner: int, frac_eq_inner: float) -> npt.NDArray[np.float32]:
-            #comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
-            comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), vec, k_inner, frac_eq_inner)
-            return np.array([comp, cont])
+        #def func(vec: npt.NDArray[np.uint8], k_inner: int, frac_eq_inner: float) -> npt.NDArray[np.float32]:
+        #    #comp, cont, num = db.estimate(vec, k_inner, frac_eq_inner)
+        #    comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), vec, k_inner, frac_eq_inner)
+        #    print("bla")
+        #    return np.array([comp, cont])
 
-        return np.apply_along_axis(func, 1, self.mat(), k, frac_eq)
+        #return np.apply_along_axis(func, 1, self.mat(), k, frac_eq)
+
+        result = []
+
+        for idx, row in tqdm(enumerate(self.mat())):
+            comp, cont, num = DatabaseMatrix.estimate_njit(db.mat(), row, k, frac_eq)
+            result.append(np.array([comp, cont]))
+
+        return np.array(result)
 
 
 def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
