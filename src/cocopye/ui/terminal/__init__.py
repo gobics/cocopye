@@ -7,6 +7,7 @@ from typing import List
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
+from numba import set_num_threads
 from tomlkit import TOMLDocument
 
 from ..config import parse_args, parse_config
@@ -94,11 +95,11 @@ def run_kmer(args: argparse.Namespace, config: TOMLDocument):
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmer_mat1234.npy")))
     query_mat, bin_ids = count_kmers(args.infolder, args.file_extension)
 
-    run(db_mat, query_mat, bin_ids, args.outfile)  # TODO: knn mit range
+    run(db_mat, query_mat, bin_ids, args.outfile, 0.3)  # TODO: knn mit range
 
 
-def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outfile_path: str):
-    estimates = query_mat.estimates(db_mat, 30)  # TODO: Remove hardcoded k
+def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outfile_path: str, var_thresh: float = None):
+    estimates = query_mat.estimates(db_mat, 30, var_thresh=var_thresh)  # TODO: Remove hardcoded k
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
