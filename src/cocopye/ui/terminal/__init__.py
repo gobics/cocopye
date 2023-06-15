@@ -95,7 +95,7 @@ def run_kmer(args: argparse.Namespace, config: TOMLDocument):
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmer_mat1234.npy")))
     query_mat, bin_ids = count_kmers(args.infolder, args.file_extension)
 
-    run(db_mat, query_mat, bin_ids, args.outfile, 0.3)  # TODO: knn mit range
+    run(db_mat, query_mat, bin_ids, args.outfile, 0.15)  # TODO: knn mit range
 
 
 def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outfile_path: str, var_thresh: float = None):
@@ -105,7 +105,7 @@ def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outf
 
     outfile = open(outfile_path, "w")
     for idx in range(len(bin_ids)):
-        outfile.write(bin_ids[idx] + "," + str(estimates[idx, 0]) + "," + str(estimates[idx, 1]) + "\n")
+        outfile.write(bin_ids[idx] + "," + str(estimates[idx, 0]) + "," + str(estimates[idx, 1]) + "," + str(estimates[idx, 2]) + "\n")
     outfile.close()
 
 

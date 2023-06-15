@@ -162,11 +162,11 @@ def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
 
 @njit(nogil=True, parallel=True)
 def estimates_njit(query_mat, db_mat, k, frac_eq, progress_bar, var_thresh: float = None):
-    result = np.zeros((query_mat.shape[0], 2))
+    result = np.zeros((query_mat.shape[0], 3))
 
     for idx in prange(len(query_mat)):
         comp, cont, num = estimate_njit(db_mat, query_mat[idx], k, frac_eq, var_thresh=var_thresh)
-        result[idx] = np.array([comp, cont])
+        result[idx] = np.array([comp, cont, num])
         progress_bar.update(1)
 
     return result
