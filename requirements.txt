@@ -7,3 +7,4 @@ tomlkit~=0.11.6
 requests~=2.28.2
 tqdm~=4.65.0
 scipy~=1.10.1
+numba-progress==1.0.0
