@@ -63,7 +63,7 @@ def create_database(args: argparse.Namespace, config: TOMLDocument, kmer_flag: b
         filter_file.close()
 
     if kmer_flag:
-        db_mat = kmer.create_database_matrix(args.infile, sequences=filter_list)
+        db_mat = kmer.create_database_matrix(config["external"]["prodigal_bin"], args.infile, sequences=filter_list)
     else:
         db_mat = pfam.create_database_matrix(
             config["external"]["uproc_orf_bin"],
@@ -93,7 +93,7 @@ def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
 
 def run_kmer(args: argparse.Namespace, config: TOMLDocument):
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmer_mat1234.npy")))
-    query_mat, bin_ids = count_kmers(args.infolder, args.file_extension)
+    query_mat, bin_ids = count_kmers(config["external"]["prodigal_bin"], args.infolder, args.file_extension)
 
     run(db_mat, query_mat, bin_ids, args.outfile, 0.15)  # TODO: knn mit range
 

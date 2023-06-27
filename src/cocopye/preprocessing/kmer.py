@@ -26,6 +26,8 @@ count_matrix = sequences_to_count_matrix(sequences, 4)
 from __future__ import annotations
 
 import os
+import subprocess
+from subprocess import PIPE, DEVNULL
 import sys
 
 import numpy as np
@@ -148,40 +150,118 @@ PROTEIN: Alphabet = Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")
 """`Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")`"""
 
 
-def create_database_matrix(
-        fasta_file: str,
-        alphabet: Alphabet = PROTEIN,
-        sequences: tp.Optional[tp.List[str]] = None,
-        k: int = 4
-) -> DatabaseMatrix:
-    counts = []
+#def create_database_matrix(
+#        fasta_file: str,
+#        alphabet: Alphabet = PROTEIN,
+#        sequences: tp.Optional[tp.List[str]] = None,
+#        k: int = 4
+#) -> DatabaseMatrix:
+#    counts = []
+
+#    for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
+#        print("\r Reading " + str(idx), end="", flush=True)
+#        if sequences is not None and record.id not in sequences:
+#            continue
+
+#        seq = Sequence(str(record.seq), alphabet)
+#        counts.append(seq.kmer_count(k))
+
+#    return DatabaseMatrix(np.array(counts, dtype=np.uint8))
+
+
+def create_database_matrix(prod_bin: str, fasta_file: str, sequences: tp.Optional[tp.List[str]] = None, k: int = 4) -> DatabaseMatrix:
+    tmpfile = "tmpfile_prodigal"
+
+    process = subprocess.Popen(
+        [prod_bin, "-p", "single", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True  # TODO: -m?
+    )
 
     for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
-        print("\r Reading " + str(idx), end="", flush=True)
+        print(idx)
+
         if sequences is not None and record.id not in sequences:
             continue
 
-        seq = Sequence(str(record.seq), alphabet)
-        counts.append(seq.kmer_count(k))
+        process.stdin.write(">" + record.id + "\n")
+        process.stdin.write(str(record.seq) + "\n")
 
-    return DatabaseMatrix(np.array(counts, dtype=np.uint8))
+    assert process.stderr is not None  # for MyPy
+
+    while process.poll() is None:
+        print(process.stderr.readline(), end="")
+    print(process.stderr.read(), end="")
+
+    process.stdin.close()
+    process.wait()
+
+    kmer_counts, bin_list = prodigal_to_count_mat(tmpfile, k)
+
+    return DatabaseMatrix(np.array(kmer_counts, dtype=np.uint8))
 
 
-def count_kmers(
-        bin_folder: str,
-        file_extension: str = "fna",
-        alphabet: Alphabet = PROTEIN,
-        k: int = 4
-) -> Tuple[QueryMatrix, List[str]]:
+#def count_kmers(
+#        bin_folder: str,
+#        file_extension: str = "fna",
+#        alphabet: Alphabet = PROTEIN,
+#        k: int = 4
+#) -> Tuple[QueryMatrix, List[str]]:
+#    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
+#    counts = []
+
+#    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Counting Kmers"):
+#        seq_str = "$".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
+#        seq = Sequence(seq_str, alphabet, bin_id)
+#        counts.append(seq.kmer_count(k))
+
+#    return QueryMatrix(np.array(counts, dtype=np.uint8)), bins
+
+
+def count_kmers(prod_bin: str, bin_folder: str, file_extension: str = "fna", k: int = 4) -> Tuple[QueryMatrix, List[str]]:
+    tmpfile = "tmpfile_prodigal"
+
+    process = subprocess.Popen(
+        [prod_bin, "-p", "single", "-m", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL, text=True
+    )
+
     bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
-    counts = []
 
-    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Counting Kmers"):
-        seq_str = "$".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
-        seq = Sequence(seq_str, alphabet, bin_id)
-        counts.append(seq.kmer_count(k))
+    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Running Prodigal"):
+        seq_str = "NNNNNNNNNNNNNNNNNNNN".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
+        process.stdin.write(">" + bin_id + "\n")
+        process.stdin.write(seq_str + "\n")
 
-    return QueryMatrix(np.array(counts, dtype=np.uint8)), bins
+    process.stdin.close()
+    process.wait()
+
+    kmer_counts, bin_list = prodigal_to_count_mat(tmpfile, k)
+
+    return QueryMatrix(np.array(kmer_counts, dtype=np.uint8)), bin_list
+
+
+def prodigal_to_count_mat(outfile: str, k: int = 4):
+    kmer_counts = []
+    bin_list = []
+
+    orfs = []
+    current_bin = ""
+    for record in SeqIO.parse(outfile, "fasta"):
+        bin_id = record.id.rpartition("_")[0]
+
+        if bin_id != current_bin:
+            if current_bin != "":
+                kmer_counts.append(Sequence("$".join(orfs), PROTEIN, bin_id).kmer_count(k))
+
+            assert bin_id not in bin_list
+
+            current_bin = bin_id
+            bin_list.append(bin_id)
+            orfs = []
+
+        orfs.append(str(record.seq))
+
+    kmer_counts.append(Sequence("$".join(orfs), PROTEIN, current_bin).kmer_count(k))
+
+    return np.array(kmer_counts, dtype=np.uint8), bin_list
 
 
 def read_fasta_file(filename: str, alphabet: Alphabet) -> tp.List[Sequence]:
