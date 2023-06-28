@@ -92,14 +92,14 @@ def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
 
 
 def run_kmer(args: argparse.Namespace, config: TOMLDocument):
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmer_mat1234.npy")))
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "kmerdb1234.npy")))
     query_mat, bin_ids = count_kmers(config["external"]["prodigal_bin"], args.infolder, args.file_extension)
 
-    run(db_mat, query_mat, bin_ids, args.outfile, 0.15)  # TODO: knn mit range
+    run(db_mat, query_mat, bin_ids, args.outfile, 0.15, args.k)  # TODO: knn mit range
 
 
-def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outfile_path: str, var_thresh: float = None):
-    estimates = query_mat.estimates(db_mat, 30, var_thresh=var_thresh)  # TODO: Remove hardcoded k
+def run(db_mat: DatabaseMatrix, query_mat: QueryMatrix, bin_ids: List[str], outfile_path: str, var_thresh: float = None, k: int = 30):
+    estimates = query_mat.estimates(db_mat, k, var_thresh=var_thresh)  # TODO: Remove hardcoded k
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 

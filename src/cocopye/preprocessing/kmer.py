@@ -185,13 +185,14 @@ def create_database_matrix(prod_bin: str, fasta_file: str, sequences: tp.Optiona
         process.stdin.write(">" + record.id + "\n")
         process.stdin.write(str(record.seq) + "\n")
 
+    process.stdin.close()
+
     assert process.stderr is not None  # for MyPy
 
     while process.poll() is None:
         print(process.stderr.readline(), end="")
     print(process.stderr.read(), end="")
 
-    process.stdin.close()
     process.wait()
 
     kmer_counts, bin_list = prodigal_to_count_mat(tmpfile, k)
@@ -220,7 +221,7 @@ def count_kmers(prod_bin: str, bin_folder: str, file_extension: str = "fna", k: 
     tmpfile = "tmpfile_prodigal"
 
     process = subprocess.Popen(
-        [prod_bin, "-p", "single", "-m", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL, text=True
+        [prod_bin, "-p", "single", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True  # TODO: -m?
     )
 
     bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
@@ -231,6 +232,13 @@ def count_kmers(prod_bin: str, bin_folder: str, file_extension: str = "fna", k: 
         process.stdin.write(seq_str + "\n")
 
     process.stdin.close()
+
+    assert process.stderr is not None  # for MyPy
+
+    while process.poll() is None:
+        print(process.stderr.readline(), end="")
+    print(process.stderr.read(), end="")
+
     process.wait()
 
     kmer_counts, bin_list = prodigal_to_count_mat(tmpfile, k)

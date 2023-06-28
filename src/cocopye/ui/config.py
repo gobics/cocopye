@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     run_parser.add_argument("--kmer", help="Use kmer counts instead of pfam counts", action='store_true')
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
+    run_parser.add_argument("-k", help="k for knn", default=30)
 
     db_parser = subparsers.add_parser("database", help="Create a new database matrix")
 
