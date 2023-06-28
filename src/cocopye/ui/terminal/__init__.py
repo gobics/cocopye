@@ -88,7 +88,7 @@ def run_pfam(args: argparse.Namespace, config: TOMLDocument) -> None:
         args.file_extension
     )
 
-    run(db_mat, query_mat, bin_ids, args.outfile)
+    run(db_mat, query_mat, bin_ids, args.outfile, k=args.k)
 
 
 def run_kmer(args: argparse.Namespace, config: TOMLDocument):

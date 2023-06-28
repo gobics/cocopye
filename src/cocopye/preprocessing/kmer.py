@@ -269,6 +269,8 @@ def prodigal_to_count_mat(outfile: str, k: int = 4):
 
     kmer_counts.append(Sequence("$".join(orfs), PROTEIN, current_bin).kmer_count(k))
 
+    os.remove(outfile)
+
     return np.array(kmer_counts, dtype=np.uint8), bin_list
 
 
