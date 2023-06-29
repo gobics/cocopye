@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
 
     cleanup_parser = subparsers.add_parser("cleanup", help="Remove automatically downloaded files")
 
+    web_parser = subparsers.add_parser("web", help="Start webserver")
+
     return parser.parse_args()
 
 

@@ -49,10 +49,18 @@ def main() -> None:
         else:
             run_pfam(args, configuration)
 
+    if args.subcommand == "web":
+        web(configuration)
+
     if args.subcommand is None:
         print("No subcommand selected. If you don't know which subcommand to use, you will most likely")
         print("want to use \"run\". Execute \"cocopye -h\" or \"cocopye run -h\" for usage instructions.")
         sys.exit(1)
+
+
+def web(config):
+    from ..web import start_server
+    start_server(config)
 
 
 def create_database(args: argparse.Namespace, config: TOMLDocument, kmer_flag: bool = False) -> None:
