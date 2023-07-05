@@ -1,11 +1,11 @@
 import os
 import tempfile
 
-import bottle
 from bottle import route, run, request, view
 
 from ..matrices import DatabaseMatrix, load_u8mat_from_file
 from ..preprocessing.pfam import count_pfams
+from .config import CONFIG
 
 
 @route('/')
@@ -26,14 +26,12 @@ def upload_file():
     with tempfile.TemporaryDirectory() as tmpdirname:
         fasta_file.save(tmpdirname)
 
-        config = request.app.config["config"]
-
-        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "mat1234.npy")))
+        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat1234.npy")))
         query_mat, bin_ids = count_pfams(
-            config["external"]["uproc_orf_bin"],
-            config["external"]["uproc_bin"],
-            config["external"]["uproc_db"],
-            config["external"]["uproc_models"],
+            CONFIG["external"]["uproc_orf_bin"],
+            CONFIG["external"]["uproc_bin"],
+            CONFIG["external"]["uproc_db"],
+            CONFIG["external"]["uproc_models"],
             tmpdirname,
             ext[1:]
         )
@@ -43,10 +41,7 @@ def upload_file():
     return dict(result=(f'{estimates[0]*100:.2f}', f'{estimates[1]*100:.2f}'))
 
 
-def start_server(config, debug=False):
-    app = bottle.default_app()
-    app.config["config"] = config
-
+def start_server(debug=False):
     if debug:
         run(host='localhost', port=8080, debug=True)
     else:

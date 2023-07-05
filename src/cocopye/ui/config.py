@@ -79,14 +79,13 @@ def parse_config(config_file: Optional[str] = None) -> Tuple[str, TOMLDocument]:
         sys.exit(1)
 
 
-def change_config(config: TOMLDocument, file: str, table: str, elem: str, new_value: str) -> TOMLDocument:
-    config[table][elem] = new_value
+def change_config(table: str, elem: str, new_value: str) -> None:
+    global CONFIG
+    CONFIG[table][elem] = new_value
 
-    f = open(file, "w")
-    f.write(dumps(config))
+    f = open(CONFIG_FILE, "w")
+    f.write(dumps(CONFIG))
     f.close()
-
-    return config
 
 
 DEFAULT_CONFIG = """[external]
@@ -112,4 +111,5 @@ model = "http://uproc.gobics.de/downloads/models/model.tar.gz"
 cocopye_db = "https://user.informatik.uni-goettingen.de/~n.birth/cocopye_db.zip"
 """
 
-
+ARGS = parse_args()
+CONFIG_FILE, CONFIG = parse_config(ARGS.config)
