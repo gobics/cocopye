@@ -6,14 +6,24 @@ from ...matrices import DatabaseMatrix, load_u8mat_from_file
 from ...preprocessing.pfam import count_pfams
 
 
-app = Celery("tasks", backend="redis://localhost", broker="redis://localhost")
+app = Celery(
+    "tasks",
+    backend="redis://localhost",
+    broker="redis://localhost",
+    # backend=os.getenv("BACKEND"),     This does not work (crashes on task execution) and I have no idea why.
+    # broker=os.getenv("BROKER"),       TODO
+    broker_connection_retry=False,
+    broker_connection_retry_on_startup=True,
+    broker_connection_max_retries=10,
+)
 
 
-@app.task(bind=True)
-def estimate(self, config, infolder: str):
+@app.task(bind=True, time_limit=os.getenv("CELERY_TIME_LIMIT"))
+def estimate_task(self, config, infolder: str):
+    self.update_state(state="RUNNING")
+
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "mat1234.npy")))
 
-    self.update_state(state="RUNNING", meta={"stage": 0})
     query_mat, bin_ids = count_pfams(
         config["external"]["uproc_orf_bin"],
         config["external"]["uproc_bin"],
@@ -22,5 +32,4 @@ def estimate(self, config, infolder: str):
         infolder,
     )
 
-    self.update_state(state="RUNNING", meta={"stage": 1})
     return list(query_mat.estimates(db_mat, 5)[0])
