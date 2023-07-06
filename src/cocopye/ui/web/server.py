@@ -22,7 +22,7 @@ jinja_env = Environment(
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return jinja_env.get_template("main.html").render(request=request, url=CONFIG["server"]["url"])
+    return jinja_env.get_template("main.html").render(request=request, public_url=CONFIG["server"]["public_url"])
 
 
 @app.post("/upload")

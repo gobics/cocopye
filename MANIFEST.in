@@ -1,1 +1,1 @@
-include src/cocopye/ui/web_new/templates/*
+include src/cocopye/ui/web/templates/*

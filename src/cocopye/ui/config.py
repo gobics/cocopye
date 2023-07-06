@@ -98,7 +98,7 @@ uproc_models = "none"
 cocopye_db = "none"
 
 [server]
-puclic_url = "localhost:8000"
+public_url = "localhost:8000"
 tmpdir = "{0}"
 host = "127.0.0.1"
 port = 8000
