@@ -54,8 +54,10 @@ def main() -> None:
 
 
 def web():
-    from ..web import start_server
-    start_server()
+    #from ..web import start_server
+    #start_server()
+    from ..web_new.server import run_server
+    run_server()
 
 
 def create_database() -> None:

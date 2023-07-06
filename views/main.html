@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Titel</title>
+    </head>
+    <body>
+        <input type="file" id="file">
+        <button onclick="upload()" >Upload</button>
+        <ul id="status"></ul>
+        <script>
+            function clear_status() {
+                document.getElementById("status").innerHTML = "";
+            }
+
+            function update_status(message) {
+                let status_ul = document.getElementById("status")
+                    let message_li = document.createElement("li")
+                    message_li.innerHTML = message
+                    status_ul.appendChild(message_li)
+            }
+
+            async function upload() {
+                clear_status()
+                update_status("Uploading file")
+
+                let formData = new FormData();
+                formData.append("file", document.getElementById("file").files[0]);
+
+                let response = await fetch("/upload", {method: "POST", body: formData});
+                let ws_id = await response.json();
+
+                let ws = new WebSocket("ws://localhost:8000/ws/" + ws_id["ws_id"])
+                ws.onmessage = function(event) {
+                    update_status(event.data)
+                }
+            }
+        </script>
+    </body>
+</html>
