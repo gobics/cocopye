@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
-import scipy.stats as st
 from numba import njit, prange
 from numba_progress import ProgressBar
 
