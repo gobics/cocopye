@@ -1,11 +1,11 @@
 import asyncio
+from importlib import resources
 import os
 import subprocess
 
 from Bio import SeqIO
-from fastapi import FastAPI, UploadFile, Request, WebSocket
-from fastapi.responses import HTMLResponse
-from jinja2 import Environment, PackageLoader, select_autoescape
+from fastapi import FastAPI, UploadFile, WebSocket
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import shutil
 import random
@@ -14,15 +14,6 @@ from ..config import CONFIG
 from .tasks import estimate_task
 
 app = FastAPI()
-jinja_env = Environment(
-    loader=PackageLoader("cocopye.ui.web"),
-    autoescape=select_autoescape()
-)
-
-
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    return jinja_env.get_template("main.html").render(request=request, public_url=CONFIG["server"]["public_url"])
 
 
 @app.post("/upload")
@@ -82,6 +73,12 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
 
     await ws.close()
     shutil.rmtree(infolder)
+
+
+app.mount(
+    "/",
+    StaticFiles(directory=str(resources.files("cocopye.ui.web.static").joinpath("")), html=True), name="static"
+)
 
 
 def run_server():

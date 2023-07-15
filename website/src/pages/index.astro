@@ -1,0 +1,78 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+---
+
+<Layout>
+  <div class="grid place-items-center">
+    <div class="w-3/4 text-base">
+      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
+      provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
+      delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
+      maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
+      iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
+      Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
+      quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
+      ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
+      aliquam tempora iusto deleniti sed.
+    </div>
+  </div>
+
+  <div class="grid place-items-center p-2">
+    <div class="card shadow-xl card-bordered border-2">
+      <div class="card-body flex flex-col items-center">
+        <h2 class="card-title justify-center text-2xl">Try out!</h2>
+        <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
+        <div class="form-control w-full max-w-xs flex flex-col items-center">
+          <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
+          <button id="upload-btn" class="btn btn-sm m-2 w-48">Upload</button>
+          <ul id="status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function clear_status() {
+      document.getElementById("status").innerHTML = "";
+    }
+
+    function update_status(message) {
+      let status_area = document.getElementById("status");
+      let status = document.createElement("li");
+      let content = document.createTextNode(message)
+      status.appendChild(content);
+      status_area.appendChild(status);
+      //let current = status_area.innerHTML;
+      //status_area.innerHTML = (current + "\n" + message).trim();
+    }
+
+    async function upload() {
+      clear_status()
+
+      if(document.getElementById("file").files[0] === undefined) {
+        update_status("No file selected.");
+        return;
+      }
+      else {
+        update_status("Uploading file")
+      }
+
+      let formData = new FormData();
+      formData.append("file", document.getElementById("file").files[0]);
+
+      let response = await fetch("/upload", {method: "POST", body: formData});
+      let ws_id = await response.json();
+
+      let ws = new WebSocket("ws://" + window.location.host + "/ws/" + ws_id["ws_id"])
+      ws.onmessage = function(event) {
+          update_status(event.data)
+      }
+    }
+
+    let button = document.getElementById("upload-btn")
+    button.addEventListener('click', () => {
+      upload();
+    });
+  </script>
+</Layout>

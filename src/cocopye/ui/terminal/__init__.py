@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import importlib.util
 from typing import List
 
 import pkg_resources
@@ -54,6 +55,13 @@ def main() -> None:
 
 
 def web():
+    # This is not optimal, but currently there seems to be no way to check if an extra was selected during
+    # package installation
+    for dep in ["fastapi", "celery", "uvicorn"]:
+        if importlib.util.find_spec(dep) is None:
+            print("Please run 'pip install cocopye[web] for webserver support.")
+            sys.exit(1)
+
     from ..web.server import run_server
     run_server()
 

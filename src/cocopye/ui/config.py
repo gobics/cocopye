@@ -2,6 +2,7 @@ import os
 import sys
 
 import argparse
+from importlib import resources
 from typing import Tuple, Optional
 
 from appdirs import user_config_dir, user_cache_dir
@@ -64,10 +65,15 @@ def parse_config(config_file: Optional[str] = None) -> Tuple[str, TOMLDocument]:
 
     # If we cannot find any, we create a new default configuration file
     print("Unable to find config file.")
+
+    default_config = parse(resources.read_text("cocopye.ui", "config.toml"))
+    default_config["server"]["tmpdir"] = os.path.join(user_cache_dir("cocopye"), "server")
+
     os.makedirs(user_config_dir("cocopye"), exist_ok=True)
     f = open(os.path.join(user_config_dir("cocopye"), "cocopye.toml"), "w")
-    f.write(DEFAULT_CONFIG)
+    f.write(dumps(default_config))
     f.close()
+
     print("Created a new default configuration file at ", os.path.join(user_config_dir("cocopye"), "cocopye.toml.\n"))
 
     # And then we read it
@@ -87,45 +93,6 @@ def change_config(table: str, elem: str, new_value: str) -> None:
     f.write(dumps(CONFIG))
     f.close()
 
-
-DEFAULT_CONFIG = """[external]
-prodigal_bin = "prodigal"
-uproc_bin = "uproc-prot"
-uproc_import_bin = "uproc-import"
-uproc_orf_bin = "uproc-orf"
-uproc_db = "none"
-uproc_models = "none"
-cocopye_db = "none"
-
-[server]
-public_url = "localhost:8000"
-tmpdir = "{0}"
-host = "127.0.0.1"
-port = 8000
-workers = 4
-debug = false
-
-[server.celery]
-# Due to some strange problem it is currently not possible to change this options (backend and broker). Looks like you
-# have to use redis. I will try to fix it in the future.
-backend = "redis://localhost"
-broker = "redis://localhost"
-workers = 8
-time_limit = 0
-
-#####################################################################################################
-# During normal use of the tool, it shouldn't be necessary to change the variables below this line. #
-#####################################################################################################
-
-[download]
-prodigal_url_windows = "https://github.com/hyattpd/Prodigal/releases/download/v2.6.3/prodigal.windows.exe"
-prodigal_url_linux = "https://github.com/hyattpd/Prodigal/releases/download/v2.6.3/prodigal.linux"
-uproc_src = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0.tar.gz"
-uproc_win = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0-win-x86_64.zip"
-pfam_db = "http://uproc.gobics.de/downloads/db/pfam24.uprocdb.gz"
-model = "http://uproc.gobics.de/downloads/models/model.tar.gz"
-cocopye_db = "https://user.informatik.uni-goettingen.de/~n.birth/cocopye_db.zip"
-""".format(os.path.join(user_cache_dir("cocopye"), "server"))
 
 ARGS = parse_args()
 CONFIG_FILE, CONFIG = parse_config(ARGS.config)
