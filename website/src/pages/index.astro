@@ -1,36 +1,87 @@
 ---
 import Layout from "../layouts/Layout.astro";
-
 ---
 
 <Layout>
-  <div class="grid place-items-center">
-    <div class="w-3/4 text-base">
-      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
-      provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
-      delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
-      maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
-      iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
-      Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
-      quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
-      ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
-      aliquam tempora iusto deleniti sed.
-    </div>
-  </div>
+  <div class="grid md:grid-cols-2 grid-cols-1 gap-6 m-2 mt-16">
+    <div class="flex flex-col items-center">
+      <div class="w-3/4 text-base">
+        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
+        provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
+        delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
+        maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
+        iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
+        Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
+        quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
+        ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
+        aliquam tempora iusto deleniti sed.
+      </div>
 
-  <div class="grid place-items-center p-2">
-    <div class="card shadow-xl card-bordered border-2">
-      <div class="card-body flex flex-col items-center">
-        <h2 class="card-title justify-center text-2xl">Try out!</h2>
-        <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
-        <div class="form-control w-full max-w-xs flex flex-col items-center">
-          <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
-          <button id="upload-btn" class="btn btn-sm m-2 w-48">Upload</button>
-          <ul id="status"></div>
+      <div class="mt-12">
+        <a class="btn btn-neutral">Get started</a>
+      </div>
+    </div>
+  
+    <div class="grid place-items-center">
+      <div class="card shadow-xl card-bordered border-2">
+        <div class="card-body flex flex-col items-center">
+          <h2 class="card-title justify-center text-2xl">Demo</h2>
+          <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
+          <div class="form-control w-full max-w-xs flex flex-col items-center">
+            <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
+            <button id="upload-btn" class="btn btn-sm m-2 w-48">Upload</button>
+            <ul id="status"></ul>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="mt-16 flex flex-col items-center">
+      <h2 class="text-2xl mb-4">Getting started</h2>
+  
+        <div class="tabs mb-2">
+          <a id="tab-pip" class="tab tab-bordered tab-active">Using pip</a> 
+          <a id="tab-conda" class="tab tab-bordered">Using conda</a> 
+          <a id="tab-source" class="tab tab-bordered">From source code</a>
+        </div>
+        <div id="tab-pip-content" class="tab-content">
+          Tab pip
+        </div>
+        <div id="tab-conda-content" class="tab-content hidden">
+          Tab conda
+        </div>
+        <div id="tab-source-content" class="tab-content hidden">
+          Tab source
+        </div>
+    </div>
+
+    <div></div>
   </div>
+
+  <script>
+    function change_tab(tabid) {
+      let tabs = document.getElementsByClassName("tab");
+      let contents = document.getElementsByClassName("tab-content")
+
+      for (let element of tabs) {
+        element.classList.remove("tab-active");
+      };
+
+      for (let element of contents) {
+        element.classList.add("hidden");
+      };
+
+      document.getElementById(tabid).classList.add("tab-active");
+      document.getElementById(tabid + "-content").classList.remove("hidden");
+    }
+
+    let tabs = document.getElementsByClassName("tab");
+    for (let tab of tabs) {
+      tab.addEventListener("click", (e) => {
+        change_tab(e.target.id);
+      });
+    }
+  </script>
 
   <script>
     function clear_status() {
@@ -43,8 +94,6 @@ import Layout from "../layouts/Layout.astro";
       let content = document.createTextNode(message)
       status.appendChild(content);
       status_area.appendChild(status);
-      //let current = status_area.innerHTML;
-      //status_area.innerHTML = (current + "\n" + message).trim();
     }
 
     async function upload() {

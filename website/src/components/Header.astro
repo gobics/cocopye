@@ -1,4 +1,8 @@
-<div class="navbar bg-gray-200">
+---
+import { Icon } from 'astro-icon'
+---
+
+<div class="navbar" style="background-color: #4A55A2; color: #FFFFFF">
   <div class="navbar-start">
     <div class="dropdown">
       <label tabindex="0" class="btn btn-ghost lg:hidden">
@@ -7,7 +11,7 @@
       <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
         <li><a>Item 1</a></li>
         <li><a>Item 2</a></li>
-        <li><a>Item 3</a></li>
+        <li><a><Icon name="mdi:account" />Item 3</a></li>
       </ul>
     </div>
     <h1 class="text-4xl font-bold">CoCoPyE</h1>
@@ -16,7 +20,7 @@
     <ul class="menu menu-horizontal px-1 text-lg">
       <li><a>Item 1</a></li>
       <li><a>Item 2</a></li>
-      <li><a>Item 3</a></li>
+      <li><a><Icon name="fa:github" style="width: 20px; height: 20px;" />Source</a></li>
     </ul>
   </div>
 </div>

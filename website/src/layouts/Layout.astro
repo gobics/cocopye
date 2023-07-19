@@ -12,11 +12,8 @@ import Header from "../components/Header.astro";
     <title>CoCoPyE</title>
   </head>
   <body>
-    <!--<Header />-->
-    <div class="flex flex-col items-center">
-      <h1 class="text-5xl font-bold pt-8">CoCoPyE</h1>
-    </div>
-    <main class="grid md:grid-cols-2 grid-cols-1 gap-6 m-2 mt-16">
+    <Header />
+    <main>
       <slot />
     </main>
   </body>
