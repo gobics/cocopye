@@ -117,7 +117,7 @@ def run(
     var_thresh: float = None,
     k: int = 30
 ):
-    estimates = query_mat.estimates(db_mat, k, var_thresh=var_thresh)  # TODO: Remove hardcoded k
+    estimates = query_mat.estimates(db_mat, k, var_thresh=var_thresh)
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 

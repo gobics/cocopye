@@ -28,7 +28,6 @@ from __future__ import annotations
 import os
 import subprocess
 from subprocess import PIPE, DEVNULL
-import sys
 
 import numpy as np
 import numpy.typing as npt
@@ -76,7 +75,7 @@ class Sequence:
 
 
 # @njit  # type: ignore
-def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> npt.NDArray[np.uint8]:  # TODO: Stop at max_value
+def _numba_kmer_count(alphabet_size: int, k: int, seq: npt.NDArray[np.int8]) -> npt.NDArray[np.uint8]:
     arr = np.zeros(alphabet_size ** k, dtype=np.uint8)
 
     for idx in range(len(seq)):
@@ -131,7 +130,6 @@ class Alphabet:
         return len(self.symbols)
 
 
-# @njit  # type: ignore
 def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.int8]:
     arr = np.empty(len(seq), dtype=types.int8)
     for idx, c in enumerate(seq):
@@ -141,7 +139,8 @@ def _numba_translate_sequence(dictx: Dict, seq: bytes) -> npt.NDArray[np.int8]:
     return arr
 
 
-_numba_translate_sequence = njit(_numba_translate_sequence)  # TODO: Check if this is as fast as the decorator
+# We have to use this, because the njit decorator apparently removes the type hints which conflicts with MyPy
+_numba_translate_sequence = njit(_numba_translate_sequence)
 
 
 DNA: Alphabet = Alphabet("ACGT", "")
@@ -150,30 +149,18 @@ PROTEIN: Alphabet = Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")
 """`Alphabet("ARNDCEQGHILKMFPSTWYV", "XB$*")`"""
 
 
-#def create_database_matrix(
-#        fasta_file: str,
-#        alphabet: Alphabet = PROTEIN,
-#        sequences: tp.Optional[tp.List[str]] = None,
-#        k: int = 4
-#) -> DatabaseMatrix:
-#    counts = []
-
-#    for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
-#        print("\r Reading " + str(idx), end="", flush=True)
-#        if sequences is not None and record.id not in sequences:
-#            continue
-
-#        seq = Sequence(str(record.seq), alphabet)
-#        counts.append(seq.kmer_count(k))
-
-#    return DatabaseMatrix(np.array(counts, dtype=np.uint8))
-
-
-def create_database_matrix(prod_bin: str, fasta_file: str, sequences: tp.Optional[tp.List[str]] = None, k: int = 4) -> DatabaseMatrix:
+def create_database_matrix(
+    prod_bin: str,
+    fasta_file: str,
+    sequences: tp.Optional[tp.List[str]] = None,
+    k: int = 4
+) -> DatabaseMatrix:
     tmpfile = "tmpfile_prodigal"
 
     process = subprocess.Popen(
-        [prod_bin, "-p", "single", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True  # TODO: -m?
+        # If a sequence contains too many Ns, Prodigal aborts with an error. If you encounter this problem, remove
+        # either the -m parameter or the problematic sequences.
+        [prod_bin, "-p", "single", "-m", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True
     )
 
     for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
@@ -200,34 +187,27 @@ def create_database_matrix(prod_bin: str, fasta_file: str, sequences: tp.Optiona
     return DatabaseMatrix(np.array(kmer_counts, dtype=np.uint8))
 
 
-#def count_kmers(
-#        bin_folder: str,
-#        file_extension: str = "fna",
-#        alphabet: Alphabet = PROTEIN,
-#        k: int = 4
-#) -> Tuple[QueryMatrix, List[str]]:
-#    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
-#    counts = []
-
-#    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Counting Kmers"):
-#        seq_str = "$".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
-#        seq = Sequence(seq_str, alphabet, bin_id)
-#        counts.append(seq.kmer_count(k))
-
-#    return QueryMatrix(np.array(counts, dtype=np.uint8)), bins
-
-
-def count_kmers(prod_bin: str, bin_folder: str, file_extension: str = "fna", k: int = 4) -> Tuple[QueryMatrix, List[str]]:
+def count_kmers(
+    prod_bin: str,
+    bin_folder: str,
+    file_extension: str = "fna",
+    k: int = 4
+) -> Tuple[QueryMatrix, List[str]]:
     tmpfile = "tmpfile_prodigal"
 
     process = subprocess.Popen(
-        [prod_bin, "-p", "single", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True  # TODO: -m?
+        # If a sequence contains too many Ns, Prodigal aborts with an error. If you encounter this problem, remove
+        # either the -m parameter or the problematic sequences.
+        [prod_bin, "-p", "single", "-m", "-a", tmpfile], stdin=PIPE, stdout=DEVNULL, stderr=PIPE, text=True
     )
 
     bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
 
     for bin_id in tqdm(bins, ncols=100, leave=False, desc="Running Prodigal"):
-        seq_str = "NNNNNNNNNNNNNNNNNNNN".join([str(record.seq) for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta")])
+        bin_path = os.path.join(bin_folder, bin_id + "." + file_extension)
+        bin_sequences = [str(record.seq) for record in SeqIO.parse(bin_path, "fasta")]
+        seq_str = "NNNNNNNNNNNNNNNNNNNN".join(bin_sequences)
+
         process.stdin.write(">" + bin_id + "\n")
         process.stdin.write(seq_str + "\n")
 

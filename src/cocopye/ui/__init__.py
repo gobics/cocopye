@@ -1,9 +1,5 @@
 """
-This module contains the executable applications of this package. This includes a terminal user interface and a (not yet
-existing) graphical user interface.
-
-If you are only using this package as a library, you most likely won't need the functions in this module. If you are
-looking for a usage guide of the tool, have a look here (TODO: include link to wiki page or something linke this).
+This module contains the terminal user interface and the webserver (should we move the server to a higher level?).
 
 ### Submodules
 

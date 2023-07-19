@@ -56,7 +56,7 @@ class Matrix(Generic[T]):
 
 class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
-    TODO: Description
+    Description
     """
     def __init__(self, mat: npt.NDArray[np.uint8]):
         """
@@ -113,7 +113,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
 class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
-    TODO: Description
+    Description
     """
     def __init__(self, mat: npt.NDArray[np.uint8]):
         """
