@@ -1,0 +1,54 @@
+---
+import Layout from "../layouts/Docs.astro";
+---
+<Layout>
+  <div class="flex flex-col items-center">
+    <h1 class="text-3xl mb-8 mt-4">Getting started</h1>
+
+    <h2 class="text-2xl mb-4">Installation</h2>
+
+    <div class="flex flex-col items-center">
+      <div class="tabs mb-2">
+        <a id="tab-pip" class="tab tab-bordered tab-active">Using pip</a> 
+        <a id="tab-conda" class="tab tab-bordered">Using conda</a> 
+        <a id="tab-source" class="tab tab-bordered">From source code</a>
+      </div>
+      <div id="tab-pip-content" class="tab-content">
+        Tab pip
+      </div>
+      <div id="tab-conda-content" class="tab-content hidden">
+        Tab conda
+      </div>
+      <div id="tab-source-content" class="tab-content hidden">
+        Tab source
+      </div>
+    </div>
+
+    <h2 class="text-2xl mb-4 mt-8">Basic usage</h2>
+  </div>
+
+  <script>
+    function change_tab(tabid) {
+      let tabs = document.getElementsByClassName("tab");
+      let contents = document.getElementsByClassName("tab-content")
+
+      for (let element of tabs) {
+        element.classList.remove("tab-active");
+      };
+
+      for (let element of contents) {
+        element.classList.add("hidden");
+      };
+
+      document.getElementById(tabid).classList.add("tab-active");
+      document.getElementById(tabid + "-content").classList.remove("hidden");
+    }
+
+    let tabs = document.getElementsByClassName("tab");
+    for (let tab of tabs) {
+      tab.addEventListener("click", (e) => {
+        change_tab(e.target.id);
+      });
+    }
+  </script>
+</Layout>

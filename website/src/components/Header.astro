@@ -2,24 +2,32 @@
 import { Icon } from 'astro-icon'
 ---
 
-<div class="navbar" style="background-color: #4A55A2; color: #FFFFFF">
+<div class="navbar h-8" style="background-color: #4A55A2; color: #FFFFFF">
   <div class="navbar-start">
     <div class="dropdown">
       <label tabindex="0" class="btn btn-ghost lg:hidden">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
       </label>
       <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a>Item 1</a></li>
-        <li><a>Item 2</a></li>
-        <li><a><Icon name="mdi:account" />Item 3</a></li>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a><Icon name="fa:github" style="width: 20px; height: 20px;" />Source</a></a></li>
       </ul>
     </div>
-    <h1 class="text-4xl font-bold">CoCoPyE</h1>
+    <a href="/" class="text-3xl font-bold">CoCoPyE</a>
   </div>
   <div class="navbar-end hidden lg:flex">
     <ul class="menu menu-horizontal px-1 text-lg">
-      <li><a>Item 1</a></li>
-      <li><a>Item 2</a></li>
+      <li>
+        <details>
+          <summary>
+            Documentation
+          </summary>
+          <ul class="p-2" style="color: #000000; background-color: #FFFFFF;">
+            <li><a href="/docs">Usage Guide</a></li>
+            <li><a>API Docs</a></li>
+          </ul>
+        </details>
+      </li>
       <li><a><Icon name="fa:github" style="width: 20px; height: 20px;" />Source</a></li>
     </ul>
   </div>
