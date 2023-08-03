@@ -2,8 +2,8 @@ import os
 import shutil
 import sys
 import importlib.util
-from typing import List
 
+import numpy as np
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
@@ -11,7 +11,7 @@ from appdirs import user_data_dir, user_config_dir
 
 from ..config import ARGS, CONFIG
 from ..external import check_and_download_dependencies
-from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
+from ...matrices import DatabaseMatrix, load_u8mat_from_file
 from ...preprocessing.kmer import count_kmers
 from ...preprocessing.pfam import count_pfams
 from ...preprocessing import kmer, pfam
@@ -40,10 +40,7 @@ def main() -> None:
             print("Error: The specified input folder does not exist. Exiting.")
             sys.exit(1)
 
-        if ARGS.kmer:
-            run_kmer()
-        else:
-            run_pfam()
+        run()
 
     if ARGS.subcommand == "web":
         web()
@@ -88,46 +85,55 @@ def create_database() -> None:
     db_mat.save_to_file(ARGS.outfile)
 
 
-def run_pfam() -> None:
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat1234.npy")))
-    query_mat, bin_ids = count_pfams(
-        CONFIG["external"]["uproc_orf_bin"],
-        CONFIG["external"]["uproc_bin"],
-        CONFIG["external"]["uproc_db"],
-        CONFIG["external"]["uproc_models"],
-        ARGS.infolder,
-        ARGS.file_extension
-    )
+def run():
+    if ARGS.kmer:
+        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat_kmer.npy")))
+        query_mat, bin_ids = count_kmers(CONFIG["external"]["prodigal_bin"], ARGS.infolder, ARGS.file_extension)
+        var_thresh = 0.15
+    else:
+        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
+        query_mat, bin_ids = count_pfams(
+            CONFIG["external"]["uproc_orf_bin"],
+            CONFIG["external"]["uproc_bin"],
+            CONFIG["external"]["uproc_db"],
+            CONFIG["external"]["uproc_models"],
+            ARGS.infolder,
+            ARGS.file_extension
+        )
+        var_thresh = None
 
-    run(db_mat, query_mat, bin_ids, ARGS.outfile, k=ARGS.k)
+    universal_arc = np.load(os.path.join(CONFIG["external"]["cocopye_db"], "universal_arc.npy"))
+    universal_bac = np.load(os.path.join(CONFIG["external"]["cocopye_db"], "universal_bac.npy"))
 
+    preestimates_arc = query_mat.preestimates(universal_arc)
+    preestimates_bac = query_mat.preestimates(universal_bac)
 
-def run_kmer():
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "kmerdb1234.npy")))
-    query_mat, bin_ids = count_kmers(CONFIG["external"]["prodigal_bin"], ARGS.infolder, ARGS.file_extension)
-
-    run(db_mat, query_mat, bin_ids, ARGS.outfile, 0.15, ARGS.k)  # TODO: knn mit range
-
-
-def run(
-    db_mat: DatabaseMatrix,
-    query_mat: QueryMatrix,
-    bin_ids: List[str],
-    outfile_path: str,
-    var_thresh: float = None,
-    k: int = 30
-):
-    estimates = query_mat.estimates(db_mat, k, var_thresh=var_thresh)
+    estimates = query_mat.estimates(db_mat, ARGS.k, var_thresh=var_thresh)
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
-    outfile = open(outfile_path, "w")
+    outfile = open(ARGS.outfile, "w")
+    outfile.write(
+        "bin,\
+        0_completeness_arc,\
+        0_contamination_arc,\
+        0_completeness_bac,\
+        0_contamination_bac,\
+        1_completeness,\
+        1_contamination,\
+        1_num_markers\n"
+    )
     for idx in range(len(bin_ids)):
         outfile.write(
             bin_ids[idx] + "," +
+            str(preestimates_arc[idx, 0]) + "," +
+            str(preestimates_arc[idx, 1]) + "," +
+            str(preestimates_bac[idx, 0]) + "," +
+            str(preestimates_bac[idx, 1]) + "," +
             str(estimates[idx, 0]) + "," +
             str(estimates[idx, 1]) + "," +
-            str(estimates[idx, 2]) + "\n")
+            str(estimates[idx, 2]) + "\n"
+        )
     outfile.close()
 
 

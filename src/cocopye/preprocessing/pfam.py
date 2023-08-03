@@ -96,7 +96,7 @@ def count_pfams(
 
     bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
 
-    for bin_id in tqdm(bins, ncols=100, leave=False, desc="Counting Pfams"):
+    for bin_id in tqdm(bins, ncols=100, desc="- Counting Pfams"):
         for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta"):
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")
             process_orf.stdin.write(str(record.seq) + "\n")

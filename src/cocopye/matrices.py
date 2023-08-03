@@ -86,6 +86,9 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         return nearest_neighbors_idx_njit(self._mat, vec, k)
 
+    def universal_markers(self, threshold: float = 0.95) -> npt.NDArray[np.uint32]:
+        return np.where(np.count_nonzero(self._mat == 1, axis=0) / self._mat.shape[0] >= threshold)[0]
+
     def estimate(
             self,
             vec: npt.NDArray[np.uint8],
@@ -122,6 +125,14 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         super().__init__(mat)
 
+    def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.flot32]:
+        submatrix = self._mat[:,markers]
+
+        completeness = np.sum(np.clip(submatrix, 0, 1), axis=1) / markers.shape[0]
+        contamination = np.sum(submatrix - np.clip(submatrix, 0, 1), axis=1) / markers.shape[0]
+
+        return np.array([completeness, contamination], dtype=np.float32).T
+
     def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9, var_thresh: float = None) -> npt.NDArray[np.float32]:
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
@@ -133,7 +144,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
-        with ProgressBar(total=self.mat().shape[0], ncols=100, desc="Some description") as progress_bar:
+        with ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates") as progress_bar:
             result = estimates_njit(self.mat(), db.mat(), k, frac_eq, progress_bar, var_thresh)
         return result
 

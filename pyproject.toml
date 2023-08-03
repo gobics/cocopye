@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "numpy==1.23",
+    "numpy>=1.23",
     "numba>=0.56.4",
     "biopython==1.81",
     "argparse~=1.4.0",
