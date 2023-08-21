@@ -10,11 +10,15 @@ A **DatabaseMatrix**, as the name implies, contains the count values of our data
 **QueryMatrix** contains the counts of the input bins (the one we want to determine completeness and contamination for).
 """
 from __future__ import annotations
+
+import pickle
 from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
 from numba import njit, prange
 from numba_progress import ProgressBar
+
+from .histogram import Histogram
 
 T = TypeVar("T")
 
@@ -126,7 +130,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         super().__init__(mat)
 
     def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.flot32]:
-        submatrix = self._mat[:,markers]
+        submatrix = self._mat[:, markers]
 
         completeness = np.sum(np.clip(submatrix, 0, 1), axis=1) / markers.shape[0]
         contamination = np.sum(submatrix - np.clip(submatrix, 0, 1), axis=1) / markers.shape[0]
@@ -147,6 +151,33 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         with ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates") as progress_bar:
             result = estimates_njit(self.mat(), db.mat(), k, frac_eq, progress_bar, var_thresh)
         return result
+
+    def into_feature_mat(self, db: DatabaseMatrix, estimates: npt.NDArray[np.float32], k: int = 4, resolution: int = 10) -> FeatureMatrix:
+        hist = Histogram(resolution)
+
+        feature_vecs = []
+        for idx, row in enumerate(self._mat):
+            knn_mat = db.nearest_neighbors(row, k).mat()  # TODO: nicht neu generieren
+
+            knn_hists = []
+            for neighbor in knn_mat:
+                knn_hists.append(hist.calc_bins_for_two_counts(row, neighbor))
+
+            mean_hist = np.mean(np.array(knn_hists), axis=0)
+            mean_hist = mean_hist / np.sum(mean_hist)
+
+            feature_vecs.append(np.concatenate([mean_hist, estimates[idx, :2]]))
+
+        return FeatureMatrix(np.array(feature_vecs))
+
+
+class FeatureMatrix(Matrix[npt.NDArray[np.double]]):
+    def __init__(self, mat: npt.NDArray[np.double]):
+        super().__init__(mat)
+
+    def ml_estimates(self, model_file: str):
+        mlp = pickle.load(open(model_file, "rb"))
+        return mlp.predict(self._mat)
 
 
 def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:

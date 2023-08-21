@@ -102,6 +102,8 @@ def run():
         )
         var_thresh = None
 
+    assert len(bin_ids) == query_mat.mat().shape[0]
+
     universal_arc = np.load(os.path.join(CONFIG["external"]["cocopye_db"], "universal_arc.npy"))
     universal_bac = np.load(os.path.join(CONFIG["external"]["cocopye_db"], "universal_bac.npy"))
 
@@ -110,18 +112,23 @@ def run():
 
     estimates = query_mat.estimates(db_mat, ARGS.k, var_thresh=var_thresh)
 
-    assert len(bin_ids) == query_mat.mat().shape[0]
+    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, 4, 10)
+    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, 4, 10)
+    ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
+    ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
 
     outfile = open(ARGS.outfile, "w")
     outfile.write(
-        "bin,\
-        0_completeness_arc,\
-        0_contamination_arc,\
-        0_completeness_bac,\
-        0_contamination_bac,\
-        1_completeness,\
-        1_contamination,\
-        1_num_markers\n"
+        "bin," +
+        "0_completeness_arc," +
+        "0_contamination_arc," +
+        "0_completeness_bac," +
+        "0_contamination_bac," +
+        "1_completeness," +
+        "1_contamination," +
+        "1_num_markers," +
+        "2_completeness," +
+        "2_contamination\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -132,7 +139,9 @@ def run():
             str(preestimates_bac[idx, 1]) + "," +
             str(estimates[idx, 0]) + "," +
             str(estimates[idx, 1]) + "," +
-            str(estimates[idx, 2]) + "\n"
+            str(estimates[idx, 2]) + "," +
+            str(ml_estimates_comp[idx]) + "," +
+            str(ml_estimates_cont[idx]) + "\n"
         )
     outfile.close()
 

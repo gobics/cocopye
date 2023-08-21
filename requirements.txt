@@ -2,6 +2,7 @@
 numpy>=1.23
 numba>=0.56.4
 biopython==1.81
+scikit-learn
 
 # CLI
 argparse~=1.4.0
