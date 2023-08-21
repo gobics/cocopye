@@ -17,6 +17,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument('-c', '--config')
+    parser.add_argument("--pfam-version", help="Pfam version (24 or 28)", default="28")
 
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 

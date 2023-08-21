@@ -20,7 +20,7 @@ import requests
 from tqdm import tqdm
 from appdirs import user_data_dir
 
-from ..config import change_config, CONFIG
+from ..config import change_config, CONFIG, ARGS
 
 
 def check_and_download_dependencies() -> None:
@@ -77,7 +77,7 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
     checks = [
         check_prodigal(CONFIG["external"]["prodigal_bin"]),
         check_uproc(CONFIG["external"]["uproc_bin"]),
-        check_pfam_db(CONFIG["external"]["uproc_db"]),
+        check_pfam_db(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
         check_model(CONFIG["external"]["uproc_models"]),
         check_cocopye_db(CONFIG["external"]["cocopye_db"])
     ]
@@ -159,7 +159,8 @@ def download_dependencies(missing: List[str]) -> None:
             )
 
     if "pfam" in missing:
-        download_pfam_db(CONFIG["download"]["pfam_db"], CONFIG["external"]["uproc_import_bin"])
+        pfam_url = CONFIG["download"]["pfam_db28"] if ARGS.pfam_version == "28" else CONFIG["download"]["pfam_db24"]
+        download_pfam_db(pfam_url, CONFIG["external"]["uproc_import_bin"], ARGS.pfam_version)
 
         change_config(
             "external", "uproc_db",

@@ -12,11 +12,11 @@ from appdirs import user_cache_dir, user_data_dir
 from ..external import download, _red, _green, _TICK, _CROSS
 
 
-def check_pfam_db(pfam_dir: str) -> Tuple[int, str, str]:
-    result = _check_folder(pfam_dir, ["fwd.ecurve", "idmap", "prot_thresh_e2", "prot_thresh_e3", "rev.ecurve"])
+def check_pfam_db(pfam_dir: str, version: str = "28") -> Tuple[int, str, str]:
+    result = _check_folder(os.path.join(pfam_dir, version), ["fwd.ecurve", "idmap", "prot_thresh_e2", "prot_thresh_e3", "rev.ecurve"])
 
     if result == "found":
-        return 0, "pfam", "  " + _TICK + " Pfam database\t" + _green(result)
+        return 0, "pfam", "  " + _TICK + " Pfam database\t" + _green("v" + version)
     else:
         return 1 if result == "not found" else 2, "pfam", "  " + _CROSS + " Pfam database\t" + _red(result)
 
@@ -49,7 +49,7 @@ def _check_folder(folder: str, files: List[str]) -> str:
     return "found" if all([file in content for file in files]) else "error"
 
 
-def download_pfam_db(url: str, import_bin: str) -> None:
+def download_pfam_db(url: str, import_bin: str, version: str = "28") -> None:
     # not using /tmp, because of the large file size
     with tempfile.TemporaryDirectory(prefix="cocopye_", dir=user_cache_dir(None)) as tmpdir:
         download(
@@ -67,9 +67,10 @@ def download_pfam_db(url: str, import_bin: str) -> None:
         print("\r- Extracting database ✓                                      ")
 
         print("- Importing database. This may take a while.", end="", flush=True)
+        os.makedirs(os.path.join(user_data_dir("cocopye"), "pfam_db", version), exist_ok=True)
         uproc_import = subprocess.Popen([import_bin,
                                          os.path.join(tmpdir, "pfam.uprocdb"),
-                                         os.path.join(user_data_dir("cocopye"), "pfam_db")],
+                                         os.path.join(user_data_dir("cocopye"), "pfam_db", version)],
                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         uproc_import.wait()
         print("\r- Importing database ✓                             \n")

@@ -10,7 +10,7 @@ import uvicorn
 import shutil
 import random
 
-from ..config import CONFIG
+from ..config import CONFIG, ARGS
 from .tasks import estimate_task
 
 app = FastAPI()
@@ -45,7 +45,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             shutil.rmtree(infolder)
             return
 
-    task = estimate_task.delay(CONFIG, infolder)
+    task = estimate_task.delay(CONFIG, ARGS, infolder)
 
     if task.state == "PENDING":
         await ws.send_text("Waiting for task execution")

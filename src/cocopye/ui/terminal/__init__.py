@@ -30,6 +30,10 @@ def main() -> None:
         cleanup()
         sys.exit(0)
 
+    if ARGS.pfam_version not in ["24", "28"]:
+        print("Error: Invalid Pfam version. Exiting.")
+        sys.exit(1)
+
     check_and_download_dependencies()
 
     if ARGS.subcommand == "database":
@@ -76,7 +80,7 @@ def create_database() -> None:
         db_mat = pfam.create_database_matrix(
             CONFIG["external"]["uproc_orf_bin"],
             CONFIG["external"]["uproc_bin"],
-            CONFIG["external"]["uproc_db"],
+            os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
             CONFIG["external"]["uproc_models"],
             ARGS.infile,
             filter_list
@@ -95,7 +99,7 @@ def run():
         query_mat, bin_ids = count_pfams(
             CONFIG["external"]["uproc_orf_bin"],
             CONFIG["external"]["uproc_bin"],
-            CONFIG["external"]["uproc_db"],
+            os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
             CONFIG["external"]["uproc_models"],
             ARGS.infolder,
             ARGS.file_extension
