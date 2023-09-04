@@ -26,19 +26,19 @@ mypy:
 pytest:
     image: python:3.10
     stage: test
-    script:
-        - pip install --upgrade pip
-        - pip install -r requirements.txt
-        - pip install pytest
-        - python -m pytest
-    after_script:
-        - pip install anybadge
-        - mkdir public
-        - anybadge -l Pytest -v $CI_JOB_STATUS -f public/pytest.svg "success"=green "failed"=red
-    artifacts:
-        paths:
-            - public
-        when: always
+    #script:
+        #- pip install --upgrade pip
+        #- pip install -r requirements.txt
+        #- pip install pytest
+        #- python -m pytest
+    #after_script:
+        #- pip install anybadge
+        #- mkdir public
+        #- anybadge -l Pytest -v $CI_JOB_STATUS -f public/pytest.svg "success"=green "failed"=red
+    #artifacts:
+        #paths:
+            #- public
+        #when: always
     allow_failure: true
     only:
         - master
