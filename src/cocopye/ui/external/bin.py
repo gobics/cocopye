@@ -9,22 +9,6 @@ from typing import Tuple
 from ..external import download, _green, _red, _TICK, _CROSS
 
 
-def check_prodigal(prodigal_bin: str) -> Tuple[int, str, str]:
-    try:
-        process = subprocess.Popen(
-            [prodigal_bin, '-v'],
-            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True
-        )
-    except FileNotFoundError:
-        return 1, "prodigal", _CROSS + " Prodigal\t\t" + _red("not found")
-
-    assert process.stderr is not None  # MyPy
-
-    version = "v" + process.stderr.read().strip().rpartition("V")[2].rpartition(":")[0]
-
-    return 0, "prodigal", _TICK + " Prodigal\t\t" + _green(version)
-
-
 def check_uproc(uproc_bin: str) -> Tuple[int, str, str]:
     try:
         process = subprocess.Popen(

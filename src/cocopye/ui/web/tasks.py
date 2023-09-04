@@ -3,7 +3,7 @@ import os
 from celery import Celery
 
 from ...matrices import DatabaseMatrix, load_u8mat_from_file
-from ...preprocessing.pfam import count_pfams
+from ...pfam import count_pfams
 
 
 app = Celery(

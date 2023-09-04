@@ -71,11 +71,10 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
     Example: `(["prodigal", "uproc"], ["pfam"], ["model"])` means that Prodigal and UProC are present and working, the
     pfam database is missing and the model is there but corrupted.
     """
-    from .bin import check_prodigal, check_uproc
+    from .bin import check_uproc
     from .data import check_pfam_db, check_model, check_cocopye_db
 
     checks = [
-        check_prodigal(CONFIG["external"]["prodigal_bin"]),
         check_uproc(CONFIG["external"]["uproc_bin"]),
         check_pfam_db(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
         check_model(CONFIG["external"]["uproc_models"]),
@@ -108,19 +107,6 @@ def download_dependencies(missing: List[str]) -> None:
     if opsys != "Windows" and opsys != "Linux":
         print("No supported operating system detected. Exiting.\n")
         sys.exit(1)
-
-    if "prodigal" in missing:
-        url = CONFIG["download"]["prodigal_url_linux"] if opsys == "Linux" \
-            else CONFIG["download"]["prodigal_url_windows"]
-
-        download(url, os.path.join(user_data_dir("cocopye"), "prodigal"), "prodigal", "- Downloading Prodigal")
-
-        change_config(
-            "external", "prodigal_bin",
-            os.path.join(user_data_dir("cocopye"), "prodigal", "prodigal")
-        )
-
-        print("- Downloading Prodigal ✓\n")
 
     if "uproc" in missing:
         if opsys == "Linux":

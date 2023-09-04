@@ -9,7 +9,7 @@ import numpy.typing as npt
 from Bio import SeqIO
 from tqdm import tqdm
 
-from ..matrices import QueryMatrix, DatabaseMatrix
+from .matrices import QueryMatrix, DatabaseMatrix
 
 MAX_PFAM = 17126
 

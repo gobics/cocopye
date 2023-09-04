@@ -12,9 +12,8 @@ from appdirs import user_data_dir, user_config_dir
 from ..config import ARGS, CONFIG
 from ..external import check_and_download_dependencies
 from ...matrices import DatabaseMatrix, load_u8mat_from_file
-from ...preprocessing.kmer import count_kmers
-from ...preprocessing.pfam import count_pfams
-from ...preprocessing import kmer, pfam
+from ...pfam import count_pfams
+from ... import pfam
 
 
 def main() -> None:
@@ -74,37 +73,29 @@ def create_database() -> None:
         filter_list = [seq.strip() for seq in filter_file.read().split("\n")]
         filter_file.close()
 
-    if ARGS.kmer:
-        db_mat = kmer.create_database_matrix(CONFIG["external"]["prodigal_bin"], ARGS.infile, sequences=filter_list)
-    else:
-        db_mat = pfam.create_database_matrix(
-            CONFIG["external"]["uproc_orf_bin"],
-            CONFIG["external"]["uproc_bin"],
-            os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
-            CONFIG["external"]["uproc_models"],
-            ARGS.infile,
-            filter_list
-        )
+    db_mat = pfam.create_database_matrix(
+        CONFIG["external"]["uproc_orf_bin"],
+        CONFIG["external"]["uproc_bin"],
+        os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
+        CONFIG["external"]["uproc_models"],
+        ARGS.infile,
+        filter_list
+    )
 
     db_mat.save_to_file(ARGS.outfile)
 
 
 def run():
-    if ARGS.kmer:
-        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat_kmer.npy")))
-        query_mat, bin_ids = count_kmers(CONFIG["external"]["prodigal_bin"], ARGS.infolder, ARGS.file_extension)
-        var_thresh = 0.15
-    else:
-        db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
-        query_mat, bin_ids = count_pfams(
-            CONFIG["external"]["uproc_orf_bin"],
-            CONFIG["external"]["uproc_bin"],
-            os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
-            CONFIG["external"]["uproc_models"],
-            ARGS.infolder,
-            ARGS.file_extension
-        )
-        var_thresh = None
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
+    query_mat, bin_ids = count_pfams(
+        CONFIG["external"]["uproc_orf_bin"],
+        CONFIG["external"]["uproc_bin"],
+        os.path.join(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
+        CONFIG["external"]["uproc_models"],
+        ARGS.infolder,
+        ARGS.file_extension
+    )
+    var_thresh = None
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 

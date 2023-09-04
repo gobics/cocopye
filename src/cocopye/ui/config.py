@@ -25,7 +25,6 @@ def parse_args() -> argparse.Namespace:
 
     run_parser.add_argument("-i", "--infolder", required=True, help="Input folder containing bins in FASTA format")
     run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
-    run_parser.add_argument("--kmer", help="Use kmer counts instead of pfam counts", action='store_true')
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
     run_parser.add_argument("-k", help="k for knn", default=30, type=int)
@@ -35,7 +34,6 @@ def parse_args() -> argparse.Namespace:
     db_parser.add_argument("-i", "--infile", required=True)
     db_parser.add_argument("-o", "--outfile", required=True)
     db_parser.add_argument("-f", "--filter")
-    db_parser.add_argument("--kmer", help="Use kmer counts instead of pfam counts", action='store_true')
 
     cleanup_parser = subparsers.add_parser("cleanup", help="Remove automatically downloaded files")
 
