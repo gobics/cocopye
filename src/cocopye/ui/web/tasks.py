@@ -19,15 +19,15 @@ app = Celery(
 
 
 @app.task(bind=True, time_limit=os.getenv("CELERY_TIME_LIMIT"))
-def estimate_task(self, config, args, infolder: str):
+def estimate_task(self, config, pfam_version, infolder: str):
     self.update_state(state="RUNNING")
 
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "mat1234.npy")))
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], "mat_pfam.npy")))
 
     query_mat, bin_ids = count_pfams(
         config["external"]["uproc_orf_bin"],
         config["external"]["uproc_bin"],
-        os.path.join(config["external"]["uproc_db"], args.pfam_version),
+        os.path.join(config["external"]["uproc_db"], pfam_version),
         config["external"]["uproc_models"],
         infolder,
     )
