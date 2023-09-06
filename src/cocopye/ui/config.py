@@ -19,8 +19,8 @@ CONFIG: TOMLDocument
 
 def init():
     global ARGS, CONFIG_FILE, CONFIG
+    CONFIG_FILE, CONFIG = parse_config()
     ARGS = parse_args()
-    CONFIG_FILE, CONFIG = parse_config(ARGS.config)
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,7 +30,6 @@ def parse_args() -> argparse.Namespace:
         epilog="Text at the bottom of help"
     )
 
-    parser.add_argument('-c', '--config', help="Specify a path to a configuration file")
     parser.add_argument("--pfam-version", help="Pfam version (24 or 28, default: 28)", default="28")
 
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
@@ -79,18 +78,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_config(config_file: Optional[str] = None) -> Tuple[str, TOMLDocument]:
-    # If there is an explicit path given, we only check this one and exit if the file
-    # cannot be found in the given location
-    if config_file is not None:
-        try:
-            with open(config_file) as config:
-                return config_file, parse(config.read())
-        except IOError:
-            print("Configuration file specified in parameter not found. Exiting.")
-            sys.exit(1)
-
-    # Otherwise we check several locations for an existing config file
-    for config_file in "cocopye.toml", os.path.join(user_config_dir("cocopye"), "cocopye.toml"):
+    # Check several locations for an existing config file
+    for config_file in os.environ.get("COCOPYE_CONFIG", ""), "cocopye.toml", os.path.join(user_config_dir("cocopye"), "cocopye.toml"):
         try:
             with open(config_file) as config:
                 return config_file, parse(config.read())
