@@ -10,7 +10,7 @@ import uvicorn
 import shutil
 import random
 
-from ..config import CONFIG, ARGS
+from .. import config
 from .tasks import estimate_task
 
 app = FastAPI()
@@ -19,7 +19,7 @@ app = FastAPI()
 @app.post("/upload")
 async def upload(file: UploadFile):
     ws_id = random.randint(0, 100000000)
-    tmpdir = CONFIG["server"]["tmpdir"]
+    tmpdir = config.CONFIG["server"]["tmpdir"]
 
     os.makedirs(os.path.join(tmpdir, str(ws_id)))
 
@@ -34,7 +34,7 @@ async def upload(file: UploadFile):
 async def ws_endpoint(ws: WebSocket, client_id: int):
     await ws.accept()
 
-    infolder = os.path.join(CONFIG["server"]["tmpdir"], str(client_id))
+    infolder = os.path.join(config.CONFIG["server"]["tmpdir"], str(client_id))
     infile = os.listdir(infolder)[0]
 
     await ws.send_text("Checking input file")
@@ -45,7 +45,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             shutil.rmtree(infolder)
             return
 
-    task = estimate_task.delay(CONFIG, ARGS.pfam_version, infolder)
+    task = estimate_task.delay(config.CONFIG, config.ARGS.pfam_version, infolder)
 
     if task.state == "PENDING":
         await ws.send_text("Waiting for task execution")
@@ -87,32 +87,32 @@ def run_server():
     celery_env = os.environ.copy()
     # celery_env["CELERY_BROKER_URL"] = CONFIG["server"]["celery"]["broker"]
     # celery_env["CELERY_RESULT_BACKEND"] = CONFIG["server"]["celery"]["backend"]
-    celery_env["CELERY_TIME_LIMIT"] = str(CONFIG["server"]["celery"]["time_limit"])
+    celery_env["CELERY_TIME_LIMIT"] = str(config.CONFIG["server"]["celery"]["time_limit"])
     if celery_env["CELERY_TIME_LIMIT"] == "0":
         celery_env["CELERY_TIME_LIMIT"] = "10000000"
 
-    if CONFIG["server"]["debug"]:
+    if config.CONFIG["server"]["debug"]:
         subprocess.Popen(
-            ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(CONFIG["server"]["celery"]["workers"])],
+            ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(config.CONFIG["server"]["celery"]["workers"])],
             env=celery_env
         )
 
         uvicorn.run(
             "cocopye.ui.web.server:app",
-            host=CONFIG["server"]["host"],
-            port=CONFIG["server"]["port"],
-            workers=CONFIG["server"]["workers"],
+            host=config.CONFIG["server"]["host"],
+            port=config.CONFIG["server"]["port"],
+            workers=config.CONFIG["server"]["workers"],
         )
     else:
         subprocess.Popen(
-            ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(CONFIG["server"]["celery"]["workers"]),
+            ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(config.CONFIG["server"]["celery"]["workers"]),
                 "--without-heartbeat", "--without-gossip", "--without-mingle"], env=celery_env
         )
 
         uvicorn.run(
             "cocopye.ui.web.server:app",
-            host=CONFIG["server"]["host"],
-            port=CONFIG["server"]["port"],
-            workers=CONFIG["server"]["workers"],
+            host=config.CONFIG["server"]["host"],
+            port=config.CONFIG["server"]["port"],
+            workers=config.CONFIG["server"]["workers"],
             log_level="error"
         )

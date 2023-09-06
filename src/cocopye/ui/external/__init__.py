@@ -20,7 +20,8 @@ import requests
 from tqdm import tqdm
 from appdirs import user_data_dir
 
-from ..config import change_config, CONFIG, ARGS
+from .. import config
+from ..config import change_config
 
 
 def check_and_download_dependencies() -> None:
@@ -75,10 +76,10 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
     from .data import check_pfam_db, check_model, check_cocopye_db
 
     checks = [
-        check_uproc(CONFIG["external"]["uproc_bin"]),
-        check_pfam_db(CONFIG["external"]["uproc_db"], ARGS.pfam_version),
-        check_model(CONFIG["external"]["uproc_models"]),
-        check_cocopye_db(CONFIG["external"]["cocopye_db"])
+        check_uproc(config.CONFIG["external"]["uproc_bin"]),
+        check_pfam_db(config.CONFIG["external"]["uproc_db"], config.ARGS.pfam_version),
+        check_model(config.CONFIG["external"]["uproc_models"]),
+        check_cocopye_db(config.CONFIG["external"]["cocopye_db"])
     ]
 
     status: Tuple[List[str], List[str], List[str]] = ([], [], [])  # ok, missing, error
@@ -110,7 +111,7 @@ def download_dependencies(missing: List[str]) -> None:
 
     if "uproc" in missing:
         if opsys == "Linux":
-            build_uproc_prot(CONFIG["download"]["uproc_src"], os.path.join(user_data_dir("cocopye"), "uproc"))
+            build_uproc_prot(config.CONFIG["download"]["uproc_src"], os.path.join(user_data_dir("cocopye"), "uproc"))
 
             change_config(
                 "external", "uproc_bin",
@@ -127,7 +128,7 @@ def download_dependencies(missing: List[str]) -> None:
                 os.path.join(user_data_dir("cocopye"), "uproc", "bin", "uproc-orf")
             )
         elif opsys == "Windows":
-            download_uproc_win(CONFIG["download"]["uproc_win"], os.path.join(user_data_dir("cocopye"), "uproc"))
+            download_uproc_win(config.CONFIG["download"]["uproc_win"], os.path.join(user_data_dir("cocopye"), "uproc"))
 
             change_config(
                 "external", "uproc_bin",
@@ -145,8 +146,8 @@ def download_dependencies(missing: List[str]) -> None:
             )
 
     if "pfam" in missing:
-        pfam_url = CONFIG["download"]["pfam_db28"] if ARGS.pfam_version == "28" else CONFIG["download"]["pfam_db24"]
-        download_pfam_db(pfam_url, CONFIG["external"]["uproc_import_bin"], ARGS.pfam_version)
+        pfam_url = config.CONFIG["download"]["pfam_db28"] if config.ARGS.pfam_version == "28" else config.CONFIG["download"]["pfam_db24"]
+        download_pfam_db(pfam_url, config.CONFIG["external"]["uproc_import_bin"], config.ARGS.pfam_version)
 
         change_config(
             "external", "uproc_db",
@@ -154,7 +155,7 @@ def download_dependencies(missing: List[str]) -> None:
         )
 
     if "model" in missing:
-        download_model(CONFIG["download"]["model"])
+        download_model(config.CONFIG["download"]["model"])
 
         change_config(
             "external", "uproc_models",
@@ -162,7 +163,7 @@ def download_dependencies(missing: List[str]) -> None:
         )
 
     if "cocopye_db" in missing:
-        download_cocopye_db(CONFIG["download"]["cocopye_db"])
+        download_cocopye_db(config.CONFIG["download"]["cocopye_db"])
 
         change_config(
             "external", "cocopye_db",

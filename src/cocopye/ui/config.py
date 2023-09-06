@@ -9,6 +9,20 @@ from appdirs import user_config_dir, user_cache_dir
 from tomlkit import parse, dumps, TOMLDocument
 
 
+ARGS: argparse.Namespace
+"""Description"""
+CONFIG_FILE: str
+"""Description"""
+CONFIG: TOMLDocument
+"""Description"""
+
+
+def init():
+    global ARGS, CONFIG_FILE, CONFIG
+    ARGS = parse_args()
+    CONFIG_FILE, CONFIG = parse_config(ARGS.config)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="cocopye",
@@ -16,12 +30,18 @@ def parse_args() -> argparse.Namespace:
         epilog="Text at the bottom of help"
     )
 
-    parser.add_argument('-c', '--config')
-    parser.add_argument("--pfam-version", help="Pfam version (24 or 28)", default="28")
+    parser.add_argument('-c', '--config', help="Specify a path to a configuration file")
+    parser.add_argument("--pfam-version", help="Pfam version (24 or 28, default: 28)", default="28")
 
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 
-    run_parser = subparsers.add_parser("run", help="Calculate contamination and completeness based on Pfam counts")
+    # Subparser run
+
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Calculate contamination and completeness",
+        description="Calculate contamination and completeness"
+    )
 
     run_parser.add_argument("-i", "--infolder", required=True, help="Input folder containing bins in FASTA format")
     run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
@@ -29,15 +49,31 @@ def parse_args() -> argparse.Namespace:
                             help="File extension of the bin FASTA files (default: fna)")
     run_parser.add_argument("-k", help="k for knn", default=30, type=int)
 
-    db_parser = subparsers.add_parser("database", help="Create a new database matrix")
+    # Subparser database
+
+    db_parser = subparsers.add_parser(
+        "database",
+        help="Create a new database matrix",
+        description="Create a new database matrix"
+    )
 
     db_parser.add_argument("-i", "--infile", required=True)
     db_parser.add_argument("-o", "--outfile", required=True)
     db_parser.add_argument("-f", "--filter")
 
-    cleanup_parser = subparsers.add_parser("cleanup", help="Remove automatically downloaded files")
+    # Other subparsers
 
-    web_parser = subparsers.add_parser("web", help="Start webserver")
+    subparsers.add_parser(
+        "cleanup",
+        help="Remove automatically downloaded/generated files",
+        description="Remove automatically downloaded/generated files"
+    )
+
+    subparsers.add_parser(
+        "web",
+        help="Start webserver",
+        description="Start webserver"
+    )
 
     return parser.parse_args()
 
@@ -91,7 +127,3 @@ def change_config(table: str, elem: str, new_value: str) -> None:
     f = open(CONFIG_FILE, "w")
     f.write(dumps(CONFIG))
     f.close()
-
-
-ARGS = parse_args()
-CONFIG_FILE, CONFIG = parse_config(ARGS.config)
