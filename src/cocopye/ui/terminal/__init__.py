@@ -13,7 +13,7 @@ from .. import config
 from ..external import check_and_download_dependencies
 from ...matrices import DatabaseMatrix, load_u8mat_from_file
 from ...pfam import count_pfams
-from ... import pfam
+from ... import pfam, constants
 
 
 def main() -> None:
@@ -30,10 +30,6 @@ def main() -> None:
     if config.ARGS.subcommand == "cleanup":
         cleanup()
         sys.exit(0)
-
-    if config.ARGS.pfam_version not in ["24", "28"]:
-        print("Error: Invalid Pfam version. Exiting.")
-        sys.exit(1)
 
     check_and_download_dependencies()
 
@@ -77,8 +73,8 @@ def create_database() -> None:
 
     db_mat = pfam.create_database_matrix(
         config.CONFIG["external"]["uproc_orf_bin"],
-        config.CONFIG["external"]["uproc_bin"],
-        os.path.join(config.CONFIG["external"]["uproc_db"], config.ARGS.pfam_version),
+        config.CONFIG["external"]["uproc_prot_bin"],
+        os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
         config.CONFIG["external"]["uproc_models"],
         config.ARGS.infile,
         filter_list
@@ -91,13 +87,13 @@ def run():
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
-        config.CONFIG["external"]["uproc_bin"],
-        os.path.join(config.CONFIG["external"]["uproc_db"], config.ARGS.pfam_version),
+        config.CONFIG["external"]["uproc_prot_bin"],
+        os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
         config.CONFIG["external"]["uproc_models"],
         config.ARGS.infolder,
         config.ARGS.file_extension
     )
-    var_thresh = None
+    var_thresh = None  # TODO: Still required?
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
@@ -107,10 +103,10 @@ def run():
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
 
-    estimates = query_mat.estimates(db_mat, config.ARGS.k, var_thresh=var_thresh)
+    estimates = query_mat.estimates(db_mat, constants.K, var_thresh=var_thresh)
 
-    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, 4, 10)
-    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, 4, 10)
+    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, constants.K, constants.RESOLUTION)
+    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, constants.K, constants.RESOLUTION)
     ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
     ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
 

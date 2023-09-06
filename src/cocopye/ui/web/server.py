@@ -45,7 +45,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             shutil.rmtree(infolder)
             return
 
-    task = estimate_task.delay(config.CONFIG, config.ARGS.pfam_version, infolder)
+    task = estimate_task.delay(config.CONFIG, "24" if config.ARGS.pfam24 else "28", infolder)
 
     if task.state == "PENDING":
         await ws.send_text("Waiting for task execution")

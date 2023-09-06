@@ -32,7 +32,16 @@ def check_model(model_dir: str) -> Tuple[int, str, str]:
 
 
 def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
-    result = _check_folder(db_dir, ["mat_pfam.npy", "mat_kmer.npy", "universal_bac.npy", "universal_arc.npy"])
+    result = _check_folder(
+        db_dir,
+        [
+            "mat_pfam.npy",
+            "universal_bac.npy",
+            "universal_arc.npy",
+            "model_comp.pickle",
+            "model_cont.pickle"
+        ]
+    )
 
     if result == "found":
         return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(result)
@@ -49,11 +58,11 @@ def _check_folder(folder: str, files: List[str]) -> str:
     return "found" if all([file in content for file in files]) else "error"
 
 
-def download_pfam_db(url: str, import_bin: str, version: str = "28") -> None:
+def download_pfam_db(url: str, import_bin: str, version: int = 28) -> None:
     # not using /tmp, because of the large file size
     with tempfile.TemporaryDirectory(prefix="cocopye_", dir=user_cache_dir(None)) as tmpdir:
         download(
-            url,
+            url[version],
             tmpdir,
             "pfam.uprocdb.gz",
             "- Downloading UProC Pfam database"
@@ -67,10 +76,10 @@ def download_pfam_db(url: str, import_bin: str, version: str = "28") -> None:
         print("\r- Extracting database ✓                                      ")
 
         print("- Importing database. This may take a while.", end="", flush=True)
-        os.makedirs(os.path.join(user_data_dir("cocopye"), "pfam_db", version), exist_ok=True)
+        os.makedirs(os.path.join(user_data_dir("cocopye"), "pfam_db", str(version)), exist_ok=True)
         uproc_import = subprocess.Popen([import_bin,
                                          os.path.join(tmpdir, "pfam.uprocdb"),
-                                         os.path.join(user_data_dir("cocopye"), "pfam_db", version)],
+                                         os.path.join(user_data_dir("cocopye"), "pfam_db", str(version))],
                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         uproc_import.wait()
         print("\r- Importing database ✓                             \n")

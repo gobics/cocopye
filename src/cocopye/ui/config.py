@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
         epilog="Text at the bottom of help"
     )
 
-    parser.add_argument("--pfam-version", help="Pfam version (24 or 28, default: 28)", default="28")
+    parser.add_argument("--pfam24", help="Use Pfam database version 24 (instead of 28)", action='store_true')
 
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 
@@ -46,19 +46,19 @@ def parse_args() -> argparse.Namespace:
     run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
-    run_parser.add_argument("-k", help="k for knn", default=30, type=int)
 
     # Subparser database
 
-    db_parser = subparsers.add_parser(
-        "database",
-        help="Create a new database matrix",
-        description="Create a new database matrix"
-    )
+    if CONFIG["advanced"]["enable_db_creator"]:
+        db_parser = subparsers.add_parser(
+            "database",
+            help="Create a new database matrix",
+            description="Create a new database matrix"
+        )
 
-    db_parser.add_argument("-i", "--infile", required=True)
-    db_parser.add_argument("-o", "--outfile", required=True)
-    db_parser.add_argument("-f", "--filter")
+        db_parser.add_argument("-i", "--infile", required=True)
+        db_parser.add_argument("-o", "--outfile", required=True)
+        db_parser.add_argument("-f", "--filter")
 
     # Other subparsers
 
@@ -68,11 +68,12 @@ def parse_args() -> argparse.Namespace:
         description="Remove automatically downloaded/generated files"
     )
 
-    subparsers.add_parser(
-        "web",
-        help="Start webserver",
-        description="Start webserver"
-    )
+    if CONFIG["advanced"]["enable_webserver"]:
+        subparsers.add_parser(
+            "web",
+            help="Start webserver",
+            description="Start webserver"
+        )
 
     return parser.parse_args()
 

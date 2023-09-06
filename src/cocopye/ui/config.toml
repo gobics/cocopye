@@ -1,10 +1,20 @@
+# These are paths to external dependencies. They are automatically set during initialisation. You can change them to
+# point to another location, for example if you have downloaded them manually.
 [external]
-uproc_bin = "uproc-prot"
+uproc_prot_bin = "uproc-prot"
 uproc_import_bin = "uproc-import"
 uproc_orf_bin = "uproc-orf"
-uproc_db = "none"
+uproc_pfam_db = "none"
 uproc_models = "none"
 cocopye_db = "none"
+
+# These are advanced features of CoCoPyE which are most likely not required during normal use. To avoid confusion they
+# are disabled by default.
+[advanced]
+# Enable database subcommand. See TODO for more information.
+enable_db_creator = false
+# Enable web subcommand. See TODO for more information.
+enable_webserver = false
 
 [server]
 public_url = "localhost:8000"
@@ -21,15 +31,3 @@ backend = "redis://localhost"
 broker = "redis://localhost"
 workers = 8
 time_limit = 0
-
-#####################################################################################################
-# During normal use of the tool, it shouldn't be necessary to change the variables below this line. #
-#####################################################################################################
-
-[download]
-uproc_src = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0.tar.gz"
-uproc_win = "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0-win-x86_64.zip"
-pfam_db24 = "http://uproc.gobics.de/downloads/db/pfam24.uprocdb.gz"
-pfam_db28 = "http://uproc.gobics.de/downloads/db/pfam28.uprocdb.gz"
-model = "http://uproc.gobics.de/downloads/models/model.tar.gz"
-cocopye_db = "https://user.informatik.uni-goettingen.de/~n.birth/cocopye_db.zip"
