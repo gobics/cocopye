@@ -93,7 +93,6 @@ def run():
         config.ARGS.infolder,
         config.ARGS.file_extension
     )
-    var_thresh = None  # TODO: Still required?
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
@@ -103,10 +102,11 @@ def run():
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
 
-    estimates = query_mat.estimates(db_mat, constants.K, var_thresh=var_thresh)
+    knn_inds = query_mat.knn_inds(db_mat, constants.K)
+    estimates = query_mat.estimates(db_mat, constants.K, knn_inds)
 
-    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, constants.K, constants.RESOLUTION)
-    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, constants.K, constants.RESOLUTION)
+    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, knn_inds, constants.RESOLUTION)
+    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, knn_inds, constants.RESOLUTION)
     ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
     ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
 

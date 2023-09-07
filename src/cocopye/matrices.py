@@ -99,7 +99,6 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
             k: int,
             frac_eq: float = 0.9,
             knn: Optional[DatabaseMatrix] = None,
-            var_thresh: float = None
     ) -> Tuple[float, float, int]:
         """
         Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
@@ -115,7 +114,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         if knn is not None:
             knn = knn.mat()
-        return estimate_njit(self.mat(), vec, k, frac_eq, knn, var_thresh)
+        return estimate_njit(self.mat(), vec, k, frac_eq, knn)
 
 
 class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
@@ -129,6 +128,9 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         super().__init__(mat)
 
+    def knn_inds(self, db: DatabaseMatrix, k: int):
+        return nearest_neighbors_idx_njit_mat(db.mat(), self._mat, k)
+
     def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.flot32]:
         submatrix = self._mat[:, markers]
 
@@ -137,7 +139,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         return np.array([completeness, contamination], dtype=np.float32).T
 
-    def estimates(self, db: DatabaseMatrix, k: int, frac_eq: float = 0.9, var_thresh: float = None) -> npt.NDArray[np.float32]:
+    def estimates(self, db: DatabaseMatrix, k: int, knn_inds: npt.NDArray[np.uint64], frac_eq: float = 0.9) -> npt.NDArray[np.float32]:
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
         the k nearest neighbors.
@@ -149,15 +151,15 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         first element ist the completeness and the second one the contamination estimate.
         """
         with ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates") as progress_bar:
-            result = estimates_njit(self.mat(), db.mat(), k, frac_eq, progress_bar, var_thresh)
+            result = estimates_njit(self.mat(), db.mat(), k, frac_eq, progress_bar, knn_inds)
         return result
 
-    def into_feature_mat(self, db: DatabaseMatrix, estimates: npt.NDArray[np.float32], k: int = 4, resolution: int = 10) -> FeatureMatrix:
+    def into_feature_mat(self, db: DatabaseMatrix, estimates: npt.NDArray[np.float32], knn_inds: npt.NDArray[np.uint64], resolution: int = 10) -> FeatureMatrix:
         hist = Histogram(resolution)
 
         feature_vecs = []
         for idx, row in enumerate(self._mat):
-            knn_mat = db.nearest_neighbors(row, k).mat()  # TODO: nicht neu generieren
+            knn_mat = db.mat()[knn_inds[idx]]
 
             knn_hists = []
             for neighbor in knn_mat:
@@ -202,11 +204,11 @@ def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
 # === NJIT FUNCTIONS ===================================================================================================
 
 @njit(nogil=True, parallel=True)
-def estimates_njit(query_mat, db_mat, k, frac_eq, progress_bar, var_thresh: float = None):
+def estimates_njit(query_mat, db_mat, k, frac_eq, progress_bar, knn_inds: npt.NDArray[np.uint64]):
     result = np.zeros((query_mat.shape[0], 3))
 
     for idx in prange(len(query_mat)):
-        comp, cont, num = estimate_njit(db_mat, query_mat[idx], k, frac_eq, var_thresh=var_thresh)
+        comp, cont, num = estimate_njit(db_mat, query_mat[idx], k, frac_eq, knn_inds=knn_inds[idx, :])
         result[idx] = np.array([comp, cont, num])
         progress_bar.update(1)
 
@@ -219,8 +221,7 @@ def estimate_njit(
         vec: npt.NDArray[np.uint8],
         k: int,
         frac_eq: float = 0.9,
-        knn: Optional[npt.NDArray[np.uint8]] = None,
-        var_thresh: float = None
+        knn_inds: Optional[npt.NDArray[np.uint64]] = None
 ) -> Tuple[float, float, int]:
     """
     Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
@@ -234,46 +235,37 @@ def estimate_njit(
     (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
     intended for evaluation purposes.
     """
-    knn_mat = knn
-    if knn is None:
+    if knn_inds is None:
         knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)
         knn_mat = mat[knn_mat_idx, :]
-
-    if var_thresh is None:
-        (mode_vals, mode_nums) = mode(knn_mat)
-
-        (mark_inds,) = np.where(np.logical_and(np.logical_and(mode_vals > 0, mode_vals < 255), mode_nums >= round(k * frac_eq)))
-        n_mark = len(mark_inds)
-
-        if n_mark == 0:
-            return -1., -1., 0
-
-        comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
-        comp = np.mean(comps)
-        cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
-
-        return float(comp), float(cont), n_mark
-
     else:
-        means = mean_ax0(knn_mat)
-        stds = std_ax0(knn_mat)
+        knn_mat = mat[knn_inds, :]
 
-        mark_inds = np.where(np.logical_and(means > 0, means < 255))[0]  # TODO: Stimmt das so?
-        norm_stds = stds[mark_inds] / means[mark_inds]
-        mark_inds2 = mark_inds[np.where(norm_stds < var_thresh)[0]]
-        n_mark = len(mark_inds2)
+    (mode_vals, mode_nums) = mode(knn_mat)
 
-        if n_mark == 0:
-            return -1., -1., 0
+    (mark_inds,) = np.where(np.logical_and(np.logical_and(mode_vals > 0, mode_vals < 255), mode_nums >= round(k * frac_eq)))
+    n_mark = len(mark_inds)
 
-        comp = np.mean(np.clip(vec[mark_inds2] / means[mark_inds2], 0, 1))
-        cont = np.mean(vec[mark_inds2] / means[mark_inds2] - np.clip(vec[mark_inds2] / means[mark_inds2], 0, 1))
+    if n_mark == 0:
+        return -1., -1., 0
 
-        return float(comp), float(cont), n_mark
+    comps = np.clip(vec[mark_inds] / mode_vals[mark_inds], 0, 1)
+    comp = np.mean(comps)
+    cont = np.mean(vec[mark_inds] / mode_vals[mark_inds] - comps)
+
+    return float(comp), float(cont), n_mark
 
 
 @njit(parallel=True)
-def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int64], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+def nearest_neighbors_idx_njit_mat(db_mat: npt.NDArray[np.int8], q_mat: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+    knn_inds = np.zeros((q_mat.shape[0], k), dtype=np.uint64)
+    for idx in prange(q_mat.shape[0]):
+        knn_inds[idx] = nearest_neighbors_idx_njit(db_mat, q_mat[idx], k)
+    return knn_inds
+
+
+@njit(parallel=True)
+def nearest_neighbors_idx_njit(mat: npt.NDArray[np.int8], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
     """
     Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
     `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
