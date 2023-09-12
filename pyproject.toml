@@ -22,6 +22,7 @@ dependencies = [
     "numba>=0.56.4",
     "biopython==1.81",
     "scikit-learn",
+    "pandas",
     "argparse~=1.4.0",
     "appdirs~=1.4.4",
     "tomlkit~=0.11.6",

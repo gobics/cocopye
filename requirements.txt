@@ -3,6 +3,7 @@ numpy>=1.23
 numba>=0.56.4
 biopython==1.81
 scikit-learn
+pandas
 
 # CLI
 argparse~=1.4.0
@@ -18,3 +19,4 @@ uvicorn~=0.22.0
 fastapi~=0.99.1
 python-multipart~=0.0.6
 websockets~=11.0.3
+pandas~=2.1.0

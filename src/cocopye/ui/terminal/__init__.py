@@ -4,6 +4,7 @@ import sys
 import importlib.util
 
 import numpy as np
+import pandas as pd
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
@@ -85,6 +86,7 @@ def create_database() -> None:
 
 def run():
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
+    metadata = pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
@@ -110,6 +112,8 @@ def run():
     ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
     ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
 
+    taxonomy = query_mat.taxonomy(knn_inds, metadata)
+
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
         "bin," +
@@ -121,7 +125,8 @@ def run():
         "1_contamination," +
         "1_num_markers," +
         "2_completeness," +
-        "2_contamination\n"
+        "2_contamination," +
+        "taxonomy\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -134,7 +139,8 @@ def run():
             str(estimates[idx, 1]) + "," +
             str(estimates[idx, 2]) + "," +
             str(ml_estimates_comp[idx]) + "," +
-            str(ml_estimates_cont[idx]) + "\n"
+            str(ml_estimates_cont[idx]) + "," +
+            taxonomy[idx] + "\n"
         )
     outfile.close()
 

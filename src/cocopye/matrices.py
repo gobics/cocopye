@@ -172,6 +172,18 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         return FeatureMatrix(np.array(feature_vecs))
 
+    def taxonomy(self, knn_inds, metadata):
+        results = []
+
+        for knn in knn_inds:
+            knn_meta = metadata.iloc[knn]
+            for col in ["species", "genus", "family", "order", "class", "phylum", "superkingdom"]:
+                if np.unique(knn_meta[col].to_numpy).shape[0] == 1:
+                    results.append(knn_meta.iloc[0][col])
+                    break
+
+        return results
+
 
 class FeatureMatrix(Matrix[npt.NDArray[np.double]]):
     def __init__(self, mat: npt.NDArray[np.double]):
