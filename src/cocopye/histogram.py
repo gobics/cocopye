@@ -9,10 +9,10 @@ class Histogram:
     _indx_mat: npt.NDArray[np.int32]
     _n_histogram_bins: int
 
-    def __init__(self, resolution):
+    def __init__(self, resolution: int):
         self._prepare_histogram(resolution)
 
-    def _prepare_histogram(self, resolution):
+    def _prepare_histogram(self, resolution: int) -> None:
         # calcutale borders of bins
         edge_vec = _calc_cr_hist_edges(resolution)
         n_histogram_bins = len(edge_vec) + 1
@@ -22,7 +22,10 @@ class Histogram:
         self._indx_mat = indx_mat
         self._n_histogram_bins = n_histogram_bins
 
-    def calc_bins_for_two_counts(self, in_vec, neighbor_vec):
+    def calc_bins_for_two_counts(
+            self, in_vec: npt.NDArray[np.uint8],
+            neighbor_vec: npt.NDArray[np.uint8]
+    ) -> npt.NDArray[np.int64]:
         # clip to maximum count (255 for uint8)!
         # use both count vectors as indices
         # indvec contains all the ratio possitions for both count vect that would be in edge_vec
@@ -32,7 +35,7 @@ class Histogram:
         return x_new_vec
 
 
-def _calc_cr_hist_edges(resolution):
+def _calc_cr_hist_edges(resolution: int) -> npt.NDArray[np.float32]:
     m = resolution + 1  # max. count hyperparameter
     # list of possible count ratios <= 1
     cr_list = [i / j for i in range(1, m) for j in range(i, m)]
@@ -55,9 +58,9 @@ def _calc_cr_hist_edges(resolution):
     return edge_vec
 
 
-def _calc_index_matrix(edge_vec, n_histogram_bins):
+def _calc_index_matrix(edge_vec: npt.NDArray[np.float32], n_histogram_bins: int) -> npt.NDArray[np.int32]:
     # using 2D index table (256 x 256)!
-    indx_mat = np.zeros((MAX_COUNT + 1, MAX_COUNT + 1), dtype=int)
+    indx_mat = np.zeros((MAX_COUNT + 1, MAX_COUNT + 1), dtype=np.int32)
     # contains all ratios of 1-255 to 1-255
     # 1/1,  1/2,    1/3     ....    1/255
     # 2/1,  2/2,    2/3     ....    2/255

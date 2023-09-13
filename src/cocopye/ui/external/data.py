@@ -13,7 +13,8 @@ from ..external import download, _red, _green, _TICK, _CROSS
 
 
 def check_pfam_db(pfam_dir: str, version: str = "28") -> Tuple[int, str, str]:
-    result = _check_folder(os.path.join(pfam_dir, version), ["fwd.ecurve", "idmap", "prot_thresh_e2", "prot_thresh_e3", "rev.ecurve"])
+    result = _check_folder(os.path.join(pfam_dir, version),
+                           ["fwd.ecurve", "idmap", "prot_thresh_e2", "prot_thresh_e3", "rev.ecurve"])
 
     if result == "found":
         return 0, "pfam", "  " + _TICK + " Pfam database\t" + _green("v" + version)

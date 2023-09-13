@@ -3,7 +3,7 @@ import sys
 
 import argparse
 from importlib import resources
-from typing import Tuple, Optional
+from typing import Tuple
 
 from appdirs import user_config_dir, user_cache_dir
 from tomlkit import parse, dumps, TOMLDocument
@@ -17,7 +17,7 @@ CONFIG: TOMLDocument
 """Description"""
 
 
-def init():
+def init() -> None:
     global ARGS, CONFIG_FILE, CONFIG
     CONFIG_FILE, CONFIG = parse_config()
     ARGS = parse_args()
@@ -30,7 +30,8 @@ def parse_args() -> argparse.Namespace:
         epilog="Text at the bottom of help"
     )
 
-    parser.add_argument("--pfam24", help="Use Pfam database version 24 (instead of 28)", action='store_true')
+    parser.add_argument("--pfam24", action='store_true',
+                        help="Use Pfam database version 24 (instead of 28)")
 
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 
@@ -42,7 +43,8 @@ def parse_args() -> argparse.Namespace:
         description="Calculate contamination and completeness"
     )
 
-    run_parser.add_argument("-i", "--infolder", required=True, help="Input folder containing bins in FASTA format")
+    run_parser.add_argument("-i", "--infolder", required=True,
+                            help="Input folder containing bins in FASTA format")
     run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
@@ -78,9 +80,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def parse_config(config_file: Optional[str] = None) -> Tuple[str, TOMLDocument]:
+def parse_config() -> Tuple[str, TOMLDocument]:
     # Check several locations for an existing config file
-    for config_file in os.environ.get("COCOPYE_CONFIG", ""), "cocopye.toml", os.path.join(user_config_dir("cocopye"), "cocopye.toml"):
+    locations = [
+        os.environ.get("COCOPYE_CONFIG", ""),
+        "cocopye.toml",
+        os.path.join(user_config_dir("cocopye"), "cocopye.toml")
+    ]
+
+    for config_file in locations:
         try:
             with open(config_file) as config:
                 return config_file, parse(config.read())

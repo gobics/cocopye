@@ -86,7 +86,7 @@ def create_database() -> None:
 
 def run():
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
-    metadata = pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
+    #metadata = pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
@@ -95,6 +95,7 @@ def run():
         config.ARGS.infolder,
         config.ARGS.file_extension
     )
+    query_mat = query_mat.with_database(db_mat, constants.K)
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
@@ -104,15 +105,15 @@ def run():
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
 
-    knn_inds = query_mat.knn_inds(db_mat, constants.K)
-    estimates = query_mat.estimates(db_mat, constants.K, knn_inds)
+    estimates = query_mat.estimates()
 
-    feature_mat_comp = query_mat.into_feature_mat(db_mat, estimates, knn_inds, constants.RESOLUTION)
-    feature_mat_cont = query_mat.into_feature_mat(db_mat, estimates, knn_inds, constants.RESOLUTION)
+    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
+    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
+    # TODO difference 24 and 28; maybe use two completely different database folders
     ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
     ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
 
-    taxonomy = query_mat.taxonomy(knn_inds, metadata)
+    #taxonomy = query_mat.taxonomy(metadata)
 
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
@@ -125,8 +126,9 @@ def run():
         "1_contamination," +
         "1_num_markers," +
         "2_completeness," +
-        "2_contamination," +
-        "taxonomy\n"
+        "2_contamination\n"
+        #"2_contamination," +
+        #"taxonomy\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -139,8 +141,9 @@ def run():
             str(estimates[idx, 1]) + "," +
             str(estimates[idx, 2]) + "," +
             str(ml_estimates_comp[idx]) + "," +
-            str(ml_estimates_cont[idx]) + "," +
-            taxonomy[idx] + "\n"
+            str(ml_estimates_cont[idx]) + "\n"
+            #str(ml_estimates_cont[idx]) + "," +
+            #taxonomy[idx] + "\n"
         )
     outfile.close()
 

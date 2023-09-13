@@ -14,6 +14,8 @@ from .matrices import QueryMatrix, DatabaseMatrix
 MAX_PFAM = 17126
 
 
+# TODO: Differentiate between fasta file and fasta folder instead of DatabaseMatrix and QueryMatrix
+
 def create_database_matrix(
         orf_bin: str,
         prot_bin: str,
