@@ -48,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
+    run_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
 
     # Subparser database
 
@@ -61,6 +62,7 @@ def parse_args() -> argparse.Namespace:
         db_parser.add_argument("-i", "--infile", required=True)
         db_parser.add_argument("-o", "--outfile", required=True)
         db_parser.add_argument("-f", "--filter")
+        db_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
 
     # Other subparsers
 

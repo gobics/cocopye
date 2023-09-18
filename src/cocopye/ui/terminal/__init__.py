@@ -8,7 +8,7 @@ import numpy as np
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
-# from numba import set_num_threads
+from numba import set_num_threads
 
 from .. import config
 from ..external import check_and_download_dependencies
@@ -27,6 +27,7 @@ def main() -> None:
         print("Welcome to CoCoPyE.\n")
 
     config.init()
+    set_num_threads(int(config.ARGS.threads))
 
     if config.ARGS.subcommand == "cleanup":
         cleanup()
@@ -78,7 +79,8 @@ def create_database() -> None:
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
         config.CONFIG["external"]["uproc_models"],
         config.ARGS.infile,
-        filter_list
+        filter_list,
+        config.ARGS.threads
     )
 
     db_mat.save_to_file(config.ARGS.outfile)
@@ -100,7 +102,8 @@ def run():
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], pfam_version),
         config.CONFIG["external"]["uproc_models"],
         config.ARGS.infolder,
-        config.ARGS.file_extension
+        config.ARGS.file_extension,
+        config.ARGS.threads
     )
     query_mat = query_mat.with_database(db_mat, constants.K)
 

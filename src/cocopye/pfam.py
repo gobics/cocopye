@@ -22,14 +22,15 @@ def create_database_matrix(
         pfam_dir: str,
         model_dir: str,
         fasta_file: str,
-        sequences: Optional[List[str]] = None
+        sequences: Optional[List[str]] = None,
+        num_threads: int = 8
 ) -> DatabaseMatrix:
     process_orf = subprocess.Popen(
         orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
     )
 
     process_prot = subprocess.Popen(
-        [prot_bin, "-p", "-F", "hf", pfam_dir, model_dir],
+        [prot_bin, "-p", "-F", "hf", "-t", str(num_threads), pfam_dir, model_dir],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
     )
 
@@ -66,7 +67,8 @@ def count_pfams(
         pfam_dir: str,
         model_dir: str,
         bin_folder: str,
-        file_extension: str = "fna"
+        file_extension: str = "fna",
+        num_threads: int = 8
 ) -> Tuple[QueryMatrix, List[str]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
@@ -90,7 +92,7 @@ def count_pfams(
     assert process_orf.stdin is not None  # MyPy
 
     process_prot = subprocess.Popen(
-        [prot_bin, "-p", "-F", "hf", pfam_dir, model_dir],
+        [prot_bin, "-p", "-F", "hf", "-t", str(num_threads), pfam_dir, model_dir],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
     )
 
