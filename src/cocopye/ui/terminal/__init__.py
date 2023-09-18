@@ -85,12 +85,14 @@ def create_database() -> None:
 
 
 def run():
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], "mat_pfam.npy")))
+    pfam_version = "24" if config.ARGS.pfam24 else "28"
+
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")))
     #metadata = pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
-        os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
+        os.path.join(config.CONFIG["external"]["uproc_pfam_db"], pfam_version),
         config.CONFIG["external"]["uproc_models"],
         config.ARGS.infolder,
         config.ARGS.file_extension
@@ -99,8 +101,8 @@ def run():
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
-    universal_arc = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], "universal_arc.npy"))
-    universal_bac = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], "universal_bac.npy"))
+    universal_arc = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_arc.npy"))
+    universal_bac = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_bac.npy"))
 
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
@@ -110,8 +112,8 @@ def run():
     feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
     feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
     # TODO difference 24 and 28; maybe use two completely different database folders
-    ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_comp.pickle"))
-    ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], "model_cont.pickle"))
+    ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle"))
+    ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle"))
 
     #taxonomy = query_mat.taxonomy(metadata)
 
