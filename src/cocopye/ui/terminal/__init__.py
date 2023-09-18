@@ -4,7 +4,7 @@ import sys
 import importlib.util
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
@@ -87,8 +87,13 @@ def create_database() -> None:
 def run():
     pfam_version = "24" if config.ARGS.pfam24 else "28"
 
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")))
-    #metadata = pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
+    db_mat = DatabaseMatrix(
+        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy"))
+    )
+    # db_mat = DatabaseMatrix(
+    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")),
+    #     pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
+    # )
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
@@ -111,11 +116,13 @@ def run():
 
     feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
     feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
-    # TODO difference 24 and 28; maybe use two completely different database folders
-    ml_estimates_comp = feature_mat_comp.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle"))
-    ml_estimates_cont = feature_mat_cont.ml_estimates(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle"))
 
-    #taxonomy = query_mat.taxonomy(metadata)
+    ml_estimates_comp = feature_mat_comp.ml_estimates(
+        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle"))
+    ml_estimates_cont = feature_mat_cont.ml_estimates(
+        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle"))
+
+    # taxonomy = query_mat.taxonomy()
 
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
@@ -129,8 +136,8 @@ def run():
         "1_num_markers," +
         "2_completeness," +
         "2_contamination\n"
-        #"2_contamination," +
-        #"taxonomy\n"
+        # "2_contamination," +
+        # "taxonomy\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -144,8 +151,8 @@ def run():
             str(estimates[idx, 2]) + "," +
             str(ml_estimates_comp[idx]) + "," +
             str(ml_estimates_cont[idx]) + "\n"
-            #str(ml_estimates_cont[idx]) + "," +
-            #taxonomy[idx] + "\n"
+            # str(ml_estimates_cont[idx]) + "," +
+            # taxonomy[idx] + "\n"
         )
     outfile.close()
 

@@ -16,6 +16,7 @@ from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
 from numba_progress import ProgressBar
+import pandas as pd
 
 from ..histogram import Histogram
 from ._numba_functions import nearest_neighbors_idx_njit, nearest_neighbors_idx_njit_mat, estimates_njit, estimate_njit
@@ -62,12 +63,18 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
     Description
     """
-    def __init__(self, mat: npt.NDArray[np.uint8]):
+    _metadata: Optional[pd.DataFrame] = None
+
+    def __init__(self, mat: npt.NDArray[np.uint8], metadata: Optional[pd.DataFrame] = None):
         """
         :param mat: 2-dimensional numpy matrix. Rows are expected to represent sequences/bins while columns are Pfams or
         kmers.
         """
         super().__init__(mat)
+        self._metadata = metadata
+
+    def metadata(self) -> Optional[pd.DataFrame]:
+        return self._metadata
 
     def nearest_neighbors(self, vec: npt.NDArray[np.uint8], k: int) -> DatabaseMatrix:
         """
@@ -122,6 +129,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     Description
     """
     _db_mat: Optional[npt.NDArray[np.uint8]] = None
+    _db_metadata: Optional[pd.DataFrame] = None
     _k: Optional[int] = None
     _knn_inds: Optional[npt.NDArray[np.uint64]] = None
 
@@ -134,12 +142,18 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
     def with_database(self, db: DatabaseMatrix, k: Optional[int] = None) -> QueryMatrix:
         self._db_mat = db.mat()
+        self._db_metadata = db.metadata()
+
         if k is not None:
             self._k = k
             self._knn_inds = nearest_neighbors_idx_njit_mat(self._db_mat, self._mat, self._k)
+
         return self
 
-    def knn(self) -> Tuple[int, npt.NDArray[np.uint64]]:
+    def knn(self) -> Optional[Tuple[int, npt.NDArray[np.uint64]]]:
+        if self._k is None:
+            return None
+
         return self._k, self._knn_inds
 
     def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.float32]:
@@ -153,7 +167,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     def estimates(
             self,
             frac_eq: float = 0.9
-    ) -> npt.NDArray[np.float32]:
+    ) -> Optional[npt.NDArray[np.float32]]:
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
         the k nearest neighbors.
@@ -162,18 +176,25 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
+        if self._db_mat is None:
+            return None
+
         with (ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates")
               as progress_bar):
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 
-    def taxonomy(self, metadata):
+    def taxonomy(self):
+        if self._db_metadata is None:
+            return None
+
+        metadata = self._db_metadata
         results = []
 
         for knn in self._knn_inds:
             knn_meta = metadata.iloc[knn]
             for col in ["species", "genus", "family", "order", "class", "phylum", "superkingdom"]:
-                if np.unique(knn_meta[col].to_numpy).shape[0] == 1:
+                if np.unique(knn_meta[col].to_numpy()).shape[0] == 1:
                     results.append(knn_meta.iloc[0][col])
                     break
 
@@ -183,7 +204,10 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
             self,
             estimates: npt.NDArray[np.float32],
             resolution: int = 10
-    ) -> FeatureMatrix:
+    ) -> Optional[FeatureMatrix]:
+        if self._knn_inds is None:
+            return None
+
         hist = Histogram(resolution)
 
         feature_vecs = []
