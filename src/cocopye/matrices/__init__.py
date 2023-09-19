@@ -52,6 +52,8 @@ class Matrix(Generic[T]):
 
         if file_format == "npy":
             np.save(filename, self._mat)  # type: ignore
+        elif file_format == "npz":
+            np.savez_compressed(filename, self._mat)
         else:
             np.savetxt(filename, self._mat, delimiter=",")  # type: ignore
 
@@ -179,8 +181,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         if self._db_mat is None:
             return None
 
-        with (ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates")
-              as progress_bar):
+        with ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates") as progress_bar:
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 
@@ -248,6 +249,8 @@ def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
     mat: npt.NDArray[np.uint8]
     if file_format == "npy":
         mat = np.load(filename)
+    elif file_format == "npz":
+        mat = np.load(filename)["arr_0"]
     else:
         mat = np.loadtxt(filename, delimiter=",", dtype=np.uint8)
 

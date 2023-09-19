@@ -90,10 +90,10 @@ def run():
     pfam_version = "24" if config.ARGS.pfam24 else "28"
 
     db_mat = DatabaseMatrix(
-        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy"))
+        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npz"))
     )
     # db_mat = DatabaseMatrix(
-    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")),
+    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npz")),
     #     pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
     # )
     query_mat, bin_ids = count_pfams(
