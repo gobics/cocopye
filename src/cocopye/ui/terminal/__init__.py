@@ -67,7 +67,6 @@ def web():
 
 
 def create_database() -> None:
-    metadata = pd.read_csv(config.ARGS.metadata, sep=",")
     count_mat, seq_list = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
@@ -76,6 +75,10 @@ def create_database() -> None:
         config.ARGS.infolder,
         num_threads=config.ARGS.threads
     )
+
+    # Read and sort metadata
+    metadata = pd.read_csv(config.ARGS.metadata, sep=",")
+    metadata = metadata.set_index("sequence").loc[seq_list].reset_index()
 
     # Create universal markers, one set for each superkingdom
     superkingdoms = np.unique(metadata["superkingdom"].to_numpy())
@@ -86,15 +89,12 @@ def create_database() -> None:
         universal_markers = DatabaseMatrix(submatrix).universal_markers(threshold=0.95)
         all_markers[superkingdom] = universal_markers
 
-    # Filter and sort metadata to match count matrix rows
-    sorted_metadata = metadata.set_index("sequence").loc[seq_list].reset_index()
-
     # Save everything to files
     os.makedirs(config.ARGS.outfolder)
     for superkingdom in all_markers:
         np.save(os.path.join(config.ARGS.outfolder, "universal_" + superkingdom + ".npy"), all_markers[superkingdom])
     np.savez_compressed(os.path.join(config.ARGS.outfolder, "count_matrix.npz"), count_mat)
-    sorted_metadata.to_csv(os.path.join(config.ARGS.outfolder, "metadata.csv"), sep=",")
+    metadata.to_csv(os.path.join(config.ARGS.outfolder, "metadata.csv"), sep=",", index=False)
 
 
 def run():
