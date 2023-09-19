@@ -9,56 +9,7 @@ import numpy.typing as npt
 from Bio import SeqIO
 from tqdm import tqdm
 
-from .matrices import QueryMatrix, DatabaseMatrix
-
 MAX_PFAM = 17126
-
-
-# TODO: Differentiate between fasta file and fasta folder instead of DatabaseMatrix and QueryMatrix
-
-def create_database_matrix(
-        orf_bin: str,
-        prot_bin: str,
-        pfam_dir: str,
-        model_dir: str,
-        fasta_file: str,
-        sequences: Optional[List[str]] = None,
-        num_threads: int = 8
-) -> DatabaseMatrix:
-    process_orf = subprocess.Popen(
-        orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
-    )
-
-    process_prot = subprocess.Popen(
-        [prot_bin, "-p", "-F", "hf", "-t", str(num_threads), pfam_dir, model_dir],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process_orf.stdout
-    )
-
-    count_pfams_async = ThreadPool(processes=1).apply_async(_count_pfams, (process_prot.stdout, False))
-
-    for idx, record in enumerate(SeqIO.parse(fasta_file, "fasta")):
-        print("\r Reading " + str(idx), end="", flush=True)
-        if sequences is not None and record.id not in sequences:
-            continue
-
-        assert process_orf.stdin is not None  # MyPy
-
-        process_orf.stdin.write(">" + record.id + "\n")
-        process_orf.stdin.write(str(record.seq) + "\n")
-
-    assert process_orf.stdin is not None  # MyPy
-
-    process_orf.stdin.close()
-    process_orf.wait()
-
-    pfam_counts, sequences = count_pfams_async.get()
-
-    result, errors = process_prot.communicate()
-
-    if process_prot.returncode != 0:
-        raise Exception(errors)
-
-    return DatabaseMatrix(pfam_counts)
 
 
 def count_pfams(
@@ -69,7 +20,7 @@ def count_pfams(
         bin_folder: str,
         file_extension: str = "fna",
         num_threads: int = 8
-) -> Tuple[QueryMatrix, List[str]]:
+) -> Tuple[npt.NDArray[np.uint8], List[str]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
     considered to be one bin. Sequence headers inside the files (most likely contig ids) are ignored.
@@ -81,6 +32,7 @@ def count_pfams(
     :param bin_folder: Bin folder
     :param file_extension: File extension of the bin FASTA files. Probably something like .fna or .fasta. Each file in
     the bin folder that has this extension is considered a bin.
+    :param num_threads: Number of threads that UProC should use (it is another question if UProC actually uses them)
     :return: A 2-tuple where the first element is a QueryMatrix containing the Pfam counts. Each row represents a bin
     and each column a Pfam. The second element of the tuple is a list of bin names (names of the input FASTA files
     without file extension) in the same order as they appear in the QueryMatrix.
@@ -115,7 +67,7 @@ def count_pfams(
     if process_prot.returncode != 0:
         raise Exception(errors)
 
-    return QueryMatrix(pfam_counts), sequences
+    return pfam_counts, sequences
 
 
 def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.NDArray[np.uint8], List[str]]:

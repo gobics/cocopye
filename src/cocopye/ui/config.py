@@ -59,9 +59,9 @@ def parse_args() -> argparse.Namespace:
             description="Create a new database matrix"
         )
 
-        db_parser.add_argument("-i", "--infile", required=True)
-        db_parser.add_argument("-o", "--outfile", required=True)
-        db_parser.add_argument("-f", "--filter")
+        db_parser.add_argument("-i", "--infolder", required=True)
+        db_parser.add_argument("-m", "--metadata", required=True)
+        db_parser.add_argument("-o", "--outfolder", required=True)
         db_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
 
     # Other subparsers

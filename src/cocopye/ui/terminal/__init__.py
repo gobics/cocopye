@@ -4,7 +4,7 @@ import sys
 import importlib.util
 
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import pkg_resources
 
 from appdirs import user_data_dir, user_config_dir
@@ -12,9 +12,9 @@ from numba import set_num_threads
 
 from .. import config
 from ..external import check_and_download_dependencies
-from ...matrices import DatabaseMatrix, load_u8mat_from_file
+from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
 from ...pfam import count_pfams
-from ... import pfam, constants
+from ... import constants
 
 
 def main() -> None:
@@ -67,34 +67,45 @@ def web():
 
 
 def create_database() -> None:
-    filter_list = None
-    if config.ARGS.filter is not None:
-        filter_file = open(config.ARGS.filter, "r")
-        filter_list = [seq.strip() for seq in filter_file.read().split("\n")]
-        filter_file.close()
-
-    db_mat = pfam.create_database_matrix(
+    metadata = pd.read_csv(config.ARGS.metadata, sep=",")
+    count_mat, seq_list = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
         config.CONFIG["external"]["uproc_models"],
-        config.ARGS.infile,
-        filter_list,
-        config.ARGS.threads
+        config.ARGS.infolder,
+        num_threads=config.ARGS.threads
     )
 
-    db_mat.save_to_file(config.ARGS.outfile)
+    # Create universal markers, one set for each superkingdom
+    superkingdoms = np.unique(metadata["superkingdom"].to_numpy())
+    all_markers = {}
+    for superkingdom in superkingdoms:
+        inds = metadata.index[metadata["superkingdom"] == superkingdom].to_list()
+        submatrix = count_mat[inds]
+        universal_markers = DatabaseMatrix(submatrix).universal_markers(threshold=0.95)
+        all_markers[superkingdom] = universal_markers
+
+    # Filter and sort metadata to match count matrix rows
+    sorted_metadata = metadata.set_index("sequence").loc[seq_list].reset_index()
+
+    # Save everything to files
+    os.makedirs(config.ARGS.outfolder)
+    for superkingdom in all_markers:
+        np.save(os.path.join(config.ARGS.outfolder, "universal_" + superkingdom + ".npy"), all_markers[superkingdom])
+    np.savez_compressed(os.path.join(config.ARGS.outfolder, "count_matrix.npz"), count_mat)
+    sorted_metadata.to_csv(os.path.join(config.ARGS.outfolder, "metadata.csv"), sep=",")
 
 
 def run():
     pfam_version = "24" if config.ARGS.pfam24 else "28"
 
     db_mat = DatabaseMatrix(
-        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npz"))
+        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz"))
     )
     # db_mat = DatabaseMatrix(
-    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "mat_pfam.npz")),
-    #     pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"))
+    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
+    #     pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"), sep=",")
     # )
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
@@ -105,7 +116,7 @@ def run():
         config.ARGS.file_extension,
         config.ARGS.threads
     )
-    query_mat = query_mat.with_database(db_mat, constants.K)
+    query_mat = QueryMatrix(query_mat).with_database(db_mat, constants.K)
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
