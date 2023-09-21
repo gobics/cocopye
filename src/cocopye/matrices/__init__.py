@@ -193,11 +193,17 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         results = []
 
         for knn in self._knn_inds:
+            found = False
             knn_meta = metadata.iloc[knn]
             for col in ["species", "genus", "family", "order", "class", "phylum", "superkingdom"]:
+                if knn_meta[col].isna().any():
+                    continue
                 if np.unique(knn_meta[col].to_numpy()).shape[0] == 1:
                     results.append(knn_meta.iloc[0][col])
+                    found = True
                     break
+            if not found:
+                results.append("nothing")
 
         return results
 

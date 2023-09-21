@@ -125,8 +125,8 @@ def run():
 
     estimates = query_mat.estimates()
 
-    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
-    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION)
+    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP)
+    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT)
 
     ml_estimates_comp = feature_mat_comp.ml_estimates(
         os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle"))
