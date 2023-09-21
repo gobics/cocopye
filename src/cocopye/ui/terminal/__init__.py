@@ -129,9 +129,9 @@ def run():
     feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT)
 
     ml_estimates_comp = feature_mat_comp.ml_estimates(
-        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle"))
+        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle")).clip(0, 1)
     ml_estimates_cont = feature_mat_cont.ml_estimates(
-        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle"))
+        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle")).clip(0, 1000000)
 
     taxonomy = query_mat.taxonomy()
 
