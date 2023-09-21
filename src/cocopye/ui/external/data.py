@@ -33,21 +33,23 @@ def check_model(model_dir: str) -> Tuple[int, str, str]:
 
 
 def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
-    result = _check_folder(
-        db_dir,
-        [
-            "mat_pfam.npy",
-            "universal_bac.npy",
-            "universal_arc.npy",
-            "model_comp.pickle",
-            "model_cont.pickle"
-        ]
-    )
+    db_files = [
+        "universal_Bacteria.npy",
+        "universal_Archaea.npy",
+        "metadata.csv",
+        "count_matrix.npz",
+        "model_comp.pickle",
+        "model_cont.pickle"
+    ]
 
-    if True or result == "found":  # TODO: Fix check
-        return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(result)
+    result_28 = _check_folder(os.path.join(db_dir, "28"), db_files)
+    result_24 = _check_folder(os.path.join(db_dir, "24"), db_files)
+
+    if result_24 == "found" and result_28:
+        version = open(os.path.join(db_dir, "version.txt"), "r").read().strip()
+        return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(version)
     else:
-        return 1 if result == "not found" else 2, "cocopye_db", _CROSS + " CoCoPyE database\t" + _red(result)
+        return 1 if result_28 == "not found" else 2, "cocopye_db", _CROSS + " CoCoPyE database\t" + _red(result_28)
 
 
 def _check_folder(folder: str, files: List[str]) -> str:

@@ -101,12 +101,9 @@ def run():
     pfam_version = "24" if config.ARGS.pfam24 else "28"
 
     db_mat = DatabaseMatrix(
-        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz"))
+        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
+        pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "metadata.csv"), sep=",")
     )
-    # db_mat = DatabaseMatrix(
-    #     load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
-    #     pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], "metadata.csv"), sep=",")
-    # )
     query_mat, bin_ids = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
@@ -120,8 +117,8 @@ def run():
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
-    universal_arc = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_arc.npy"))
-    universal_bac = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_bac.npy"))
+    universal_arc = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_Archaea.npy"))
+    universal_bac = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_Bacteria.npy"))
 
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
@@ -136,7 +133,7 @@ def run():
     ml_estimates_cont = feature_mat_cont.ml_estimates(
         os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle"))
 
-    # taxonomy = query_mat.taxonomy()
+    taxonomy = query_mat.taxonomy()
 
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
@@ -149,9 +146,8 @@ def run():
         "1_contamination," +
         "1_num_markers," +
         "2_completeness," +
-        "2_contamination\n"
-        # "2_contamination," +
-        # "taxonomy\n"
+        "2_contamination," +
+        "taxonomy\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -164,9 +160,8 @@ def run():
             str(estimates[idx, 1]) + "," +
             str(estimates[idx, 2]) + "," +
             str(ml_estimates_comp[idx]) + "," +
-            str(ml_estimates_cont[idx]) + "\n"
-            # str(ml_estimates_cont[idx]) + "," +
-            # taxonomy[idx] + "\n"
+            str(ml_estimates_cont[idx]) + "," +
+            taxonomy[idx] + "\n"
         )
     outfile.close()
 
