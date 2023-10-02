@@ -107,7 +107,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
             vec: npt.NDArray[np.uint8],
             k: int,
             frac_eq: float = 0.9,
-            knn: Optional[DatabaseMatrix] = None,
+            knn: Optional[npt.NDArray[np.uint64]] = None
     ) -> Tuple[float, float, int]:
         """
         Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
@@ -116,13 +116,11 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
         :param k: k (like in k nearest neighbors)
         :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
         marker
-        :param knn: If provided, this is used as the k nearest neighbors
+        :param knn: If provided, this is used as the nearest neighbors (expects a 1D numpy array with database indeices)
         :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
         (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
         intended for evaluation purposes.
         """
-        if knn is not None:
-            knn = knn.mat()
         return estimate_njit(self.mat(), vec, k, frac_eq, knn)
 
 

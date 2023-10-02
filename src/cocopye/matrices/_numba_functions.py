@@ -89,8 +89,9 @@ def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.u
     assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
 
     eq_count = np.zeros(num_refs)
+    norm_vec = np.sqrt((mat > 0).sum(axis=1))
     for idx in prange(len(mat)):
-        eq_count[idx] = np.sum(np.logical_and((0 < vec) < 255, mat[idx] == vec))
+        eq_count[idx] = np.sum(np.logical_and(np.logical_and(0 < vec, vec < 255), mat[idx] == vec)) / norm_vec[idx]
 
     return np.flip(np.argsort(eq_count))[:k]
 
