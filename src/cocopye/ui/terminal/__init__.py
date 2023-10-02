@@ -67,7 +67,7 @@ def web():
 
 
 def create_database() -> None:
-    count_mat, seq_list = count_pfams(
+    count_mat, seq_list, _ = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
@@ -104,7 +104,7 @@ def run():
         load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
         pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "metadata.csv"), sep=",")
     )
-    query_mat, bin_ids = count_pfams(
+    query_mat, bin_ids, _ = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], pfam_version),

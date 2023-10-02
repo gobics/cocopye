@@ -20,7 +20,7 @@ def count_pfams(
         bin_folder: str,
         file_extension: str = "fna",
         num_threads: int = 8
-) -> Tuple[npt.NDArray[np.uint8], List[str]]:
+) -> Tuple[npt.NDArray[np.uint8], List[str], Dict[str, int]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
     considered to be one bin. Sequence headers inside the files (most likely contig ids) are ignored.
@@ -52,8 +52,11 @@ def count_pfams(
 
     bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
 
+    lengths = {}
+
     for bin_id in tqdm(bins, ncols=100, desc="- Counting Pfams"):
         for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta"):
+            lengths[bin_id] = len(str(record.seq))
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")
             process_orf.stdin.write(str(record.seq) + "\n")
 
@@ -67,7 +70,7 @@ def count_pfams(
     if process_prot.returncode != 0:
         raise Exception(errors)
 
-    return pfam_counts, sequences
+    return pfam_counts, sequences, lengths
 
 
 def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.NDArray[np.uint8], List[str]]:

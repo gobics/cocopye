@@ -2,7 +2,7 @@ import os
 
 from celery import Celery
 
-from ...matrices import DatabaseMatrix, load_u8mat_from_file
+from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
 from ...pfam import count_pfams
 
 
@@ -24,7 +24,7 @@ def estimate_task(self, config, pfam_version, infolder: str):
 
     db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")))
 
-    query_mat, bin_ids = count_pfams(
+    query_mat, bin_ids, _ = count_pfams(
         config["external"]["uproc_orf_bin"],
         config["external"]["uproc_bin"],
         os.path.join(config["external"]["uproc_db"], pfam_version),
@@ -32,6 +32,6 @@ def estimate_task(self, config, pfam_version, infolder: str):
         infolder,
     )
 
-    query_mat = query_mat.with_database(db_mat, 4)
+    query_mat = QueryMatrix(query_mat).with_database(db_mat, 4)
 
     return list(query_mat.estimates()[0])
