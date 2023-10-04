@@ -12,6 +12,7 @@ from numba import set_num_threads
 
 from .. import config
 from ..external import check_and_download_dependencies
+from ..external.data import update_cocopye_db
 from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
 from ...pfam import count_pfams
 from ... import constants
@@ -27,11 +28,17 @@ def main() -> None:
         print("Welcome to CoCoPyE.\n")
 
     config.init()
-    set_num_threads(int(config.ARGS.threads))
+    if config.ARGS.subcommand in ["run", "database"]:
+        set_num_threads(int(config.ARGS.threads))
 
     if config.ARGS.subcommand == "cleanup":
         cleanup()
         sys.exit(0)
+
+    if config.ARGS.subcommand == "toolbox":
+        if config.ARGS.update_database:
+            update_cocopye_db(constants.COCOPYE_DB, config.CONFIG["external"]["cocopye_db"])
+            sys.exit(0)
 
     check_and_download_dependencies()
 

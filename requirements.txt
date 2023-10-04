@@ -4,6 +4,7 @@ numba>=0.56.4
 biopython==1.81
 scikit-learn
 pandas
+packaging
 
 # CLI
 argparse~=1.4.0

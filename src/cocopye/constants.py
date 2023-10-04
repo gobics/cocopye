@@ -24,5 +24,7 @@ PFAM_DB = {
 }
 """UProC Pfam database download path"""
 
-COCOPYE_DB = "https://user.informatik.uni-goettingen.de/~n.birth/cocopye_db.zip"
+COCOPYE_DB = "https://github.com/gobics/cocopye-database/releases/latest/download/database.zip"
 """CocoPyE database download path"""
+
+COCOPYE_DB_LATEST_RELEASE = "https://api.github.com/repos/gobics/cocopye-database/releases/latest"

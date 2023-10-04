@@ -46,6 +46,10 @@ def check_and_download_dependencies() -> None:
         print("If you have already downlaoded them, you can specify their path in the configuration file.")
         print("Apart from that, CoCoPyE can try to download them automatically.")
         print()
+        if config.ARGS.offline:
+            print("You are in offline mode. Disable it if you want to use the automatic download.")
+            print("Exiting.\n")
+            sys.exit(1)
         download_now = input("Download missing dependencies now? [Y/n] ")
         print()
         if download_now.strip() == "N" or download_now.strip() == "n":
@@ -80,7 +84,7 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
         check_uproc(config.CONFIG["external"]["uproc_prot_bin"]),
         check_pfam_db(config.CONFIG["external"]["uproc_pfam_db"], "24" if config.ARGS.pfam24 else "28"),
         check_model(config.CONFIG["external"]["uproc_models"]),
-        check_cocopye_db(config.CONFIG["external"]["cocopye_db"])
+        check_cocopye_db(config.CONFIG["external"]["cocopye_db"], config.ARGS.offline)
     ]
 
     status: Tuple[List[str], List[str], List[str]] = ([], [], [])  # ok, missing, error
@@ -90,6 +94,10 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
         print(output)
         status[lst].append(identifier)
     print()
+
+    if "outdated" in checks[3][2]:
+        print("New CoCoPyE database release available.")
+        print("You can update the database by running \"cocopye toolbox --update-database\".\n")
 
     return status[0], status[1], status[2]
 
@@ -208,6 +216,10 @@ def download(url: str, dirname: str, fname: str, label: str, chunk_size: int = 1
 
 def _green(s: str) -> str:
     return "\033[92m" + s + "\033[0m"
+
+
+def _yellow(s: str) -> str:
+    return "\033[93m" + s + "\033[0m"
 
 
 def _red(s: str) -> str:

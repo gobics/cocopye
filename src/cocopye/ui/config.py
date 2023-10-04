@@ -33,6 +33,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pfam24", action='store_true',
                         help="Use Pfam database version 24 (instead of 28)")
 
+    parser.add_argument("--offline", action='store_true',
+                        help="Run CoCoPyE in offline mode")
+
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 
     # Subparser run
@@ -63,6 +66,16 @@ def parse_args() -> argparse.Namespace:
         db_parser.add_argument("-m", "--metadata", required=True)
         db_parser.add_argument("-o", "--outfolder", required=True)
         db_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
+
+    # Subparser toolbox
+
+    toolbox_parser = subparsers.add_parser(
+        "toolbox",
+        help="Tools to update or repair CoCoPyE (TODO: better description)",
+        description="Tools to update or repair CoCoPyE (TODO: better description)"
+    )
+
+    toolbox_parser.add_argument("--update-database", action='store_true', help="Update CoCoPyE database")
 
     # Other subparsers
 

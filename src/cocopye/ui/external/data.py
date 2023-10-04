@@ -5,11 +5,14 @@ import subprocess
 import tarfile
 import tempfile
 import zipfile
-from typing import Tuple, List
+import requests
+from typing import Tuple, List, Optional
 
 from appdirs import user_cache_dir, user_data_dir
+from packaging.version import Version
 
-from ..external import download, _red, _green, _TICK, _CROSS
+from ..external import download, _red, _yellow, _green, _TICK, _CROSS
+from ... import constants
 
 
 def check_pfam_db(pfam_dir: str, version: str = "28") -> Tuple[int, str, str]:
@@ -32,7 +35,7 @@ def check_model(model_dir: str) -> Tuple[int, str, str]:
         return 1 if result == "not found" else 2, "model", "  " + _CROSS + " Models\t\t" + _red(result)
 
 
-def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
+def check_cocopye_db(db_dir: str, offline: bool = False) -> Tuple[int, str, str]:
     db_files = [
         "universal_Bacteria.npy",
         "universal_Archaea.npy",
@@ -45,11 +48,25 @@ def check_cocopye_db(db_dir: str) -> Tuple[int, str, str]:
     result_28 = _check_folder(os.path.join(db_dir, "28"), db_files)
     result_24 = _check_folder(os.path.join(db_dir, "24"), db_files)
 
-    if result_24 == "found" and result_28:
+    if result_24 == "found" and result_28 == "found":
         version = open(os.path.join(db_dir, "version.txt"), "r").read().strip()
+        if not offline and new_db_version_available(version):
+            return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _yellow(version + " (outdated)")
         return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(version)
     else:
         return 1 if result_28 == "not found" else 2, "cocopye_db", _CROSS + " CoCoPyE database\t" + _red(result_28)
+
+
+def new_db_version_available(current_version):
+    try:
+        version = requests.get(constants.COCOPYE_DB_LATEST_RELEASE).json()["tag_name"]
+    except requests.exceptions.ConnectionError:
+        return False
+
+    versions = [version[1:], current_version[1:]]
+    versions.sort(key=Version)
+
+    return "v" + versions[-1] != current_version
 
 
 def _check_folder(folder: str, files: List[str]) -> str:
@@ -104,7 +121,7 @@ def download_model(url: str) -> None:
         print("\r- Extracting UProC model ✓\n")
 
 
-def download_cocopye_db(url: str) -> None:
+def download_cocopye_db(url: str, db_dir: Optional[str] = None) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         download(
             url,
@@ -116,5 +133,17 @@ def download_cocopye_db(url: str) -> None:
 
         print("- Extracting database", end="", flush=True)
         with zipfile.ZipFile(os.path.join(tmpdir, "cocopye_db.zip"), 'r') as zip_ref:
-            zip_ref.extractall(os.path.join(user_data_dir("cocopye"), "cocopye_db"))
+            if db_dir is None:
+                db_dir = os.path.join(user_data_dir("cocopye"), "cocopye_db")
+            zip_ref.extractall(db_dir)
         print("\r- Extracting database ✓\n")
+
+
+def update_cocopye_db(url: str, db_dir: str) -> None:
+    print("- Removing old database", end="")
+    shutil.rmtree(db_dir)
+    print("\r- Removing old database ✓")
+
+    download_cocopye_db(url, db_dir)
+
+    print("Database update successful.\n")
