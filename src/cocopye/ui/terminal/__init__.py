@@ -143,45 +143,116 @@ def run():
     taxonomy = query_mat.taxonomy()
     knn_scores = query_mat.knn_scores()
 
+    completeness = []
+    contamination = []
+    stage = []
+    for idx in range(len(bin_ids)):
+        stage.append(1)
+        if preestimates_bac[idx, 0] > preestimates_arc[idx, 0]:
+            completeness.append(preestimates_bac[idx, 0])
+            contamination.append(preestimates_bac[idx, 1])
+        else:
+            completeness.append(preestimates_arc[idx, 0])
+            contamination.append(preestimates_arc[idx, 1])
+
+        if completeness[idx] < 0.2 or completeness[idx] < 2 * contamination[idx]:
+            continue
+
+        stage[idx] = 2
+        completeness[idx] = estimates[idx, 0]
+        contamination[idx] = estimates[idx, 1]
+
+        if completeness[idx] < 0.55 or completeness[idx] < 2 * contamination[idx]:
+            continue
+
+        stage[idx] = 3
+        completeness[idx] = ml_estimates_comp[idx]
+        contamination[idx] = ml_estimates_cont[idx]
+
     notes = []
     for idx in range(len(bin_ids)):
         # Currently we do not have any additional notes. But at least we could add some if we want.
         notes.append("")
 
     outfile = open(config.ARGS.outfile, "w")
-    outfile.write(
-        "bin," +
-        "0_completeness_arc," +
-        "0_contamination_arc," +
-        "0_completeness_bac," +
-        "0_contamination_bac," +
-        "1_completeness," +
-        "1_contamination," +
-        "1_num_markers," +
-        "2_completeness," +
-        "2_contamination," +
-        "count_length_ratio," +
-        "knn_score," +
-        "taxonomy," +
-        "notes\n"
-    )
-    for idx in range(len(bin_ids)):
+    if config.ARGS.verbosity == "everything":
         outfile.write(
-            bin_ids[idx] + "," +
-            str(preestimates_arc[idx, 0]) + "," +
-            str(preestimates_arc[idx, 1]) + "," +
-            str(preestimates_bac[idx, 0]) + "," +
-            str(preestimates_bac[idx, 1]) + "," +
-            str(estimates[idx, 0]) + "," +
-            str(estimates[idx, 1]) + "," +
-            str(estimates[idx, 2]) + "," +
-            str(ml_estimates_comp[idx]) + "," +
-            str(ml_estimates_cont[idx]) + "," +
-            str(count_ratio[idx]) + "," +
-            str(knn_scores[idx]) + "," +
-            taxonomy[idx] + "," +
-            notes[idx] + "\n"
+            "bin," +
+            "stage," +
+            "1_completeness_arc," +
+            "1_contamination_arc," +
+            "1_completeness_bac," +
+            "1_contamination_bac," +
+            "2_completeness," +
+            "2_contamination," +
+            "2_num_markers," +
+            "3_completeness," +
+            "3_contamination," +
+            "count_length_ratio," +
+            "knn_score," +
+            "taxonomy," +
+            "notes\n"
         )
+        for idx in range(len(bin_ids)):
+            outfile.write(
+                bin_ids[idx] + "," +
+                str(stage[idx]) + "," +
+                str(preestimates_arc[idx, 0]) + "," +
+                str(preestimates_arc[idx, 1]) + "," +
+                str(preestimates_bac[idx, 0]) + "," +
+                str(preestimates_bac[idx, 1]) + "," +
+                str(estimates[idx, 0]) + "," +
+                str(estimates[idx, 1]) + "," +
+                str(estimates[idx, 2]) + "," +
+                str(ml_estimates_comp[idx]) + "," +
+                str(ml_estimates_cont[idx]) + "," +
+                str(count_ratio[idx]) + "," +
+                str(knn_scores[idx]) + "," +
+                taxonomy[idx] + "," +
+                notes[idx] + "\n"
+            )
+    elif config.ARGS.verbosity == "extended":
+        outfile.write(
+            "bin," +
+            "completeness," +
+            "contamination," +
+            "stage," +
+            "num_markers," +
+            "count_length_ratio," +
+            "knn_score," +
+            "taxonomy," +
+            "notes\n"
+        )
+        for idx in range(len(bin_ids)):
+            outfile.write(
+                bin_ids[idx] + "," +
+                str(completeness[idx]) + "," +
+                str(contamination[idx]) + "," +
+                str(stage[idx]) + "," +
+                (str(estimates[idx, 2]) if stage[idx] >= 2 else "") + "," +
+                str(count_ratio[idx]) + "," +
+                str(knn_scores[idx]) + "," +
+                taxonomy[idx] + "," +
+                notes[idx] + "\n"
+            )
+    else:
+        outfile.write(
+            "bin," +
+            "completeness," +
+            "contamination," +
+            "stage," +
+            "taxonomy," +
+            "notes\n"
+        )
+        for idx in range(len(bin_ids)):
+            outfile.write(
+                bin_ids[idx] + "," +
+                str(completeness[idx]) + "," +
+                str(contamination[idx]) + "," +
+                str(stage[idx]) + "," +
+                taxonomy[idx] + "," +
+                notes[idx] + "\n"
+            )
     outfile.close()
 
 
