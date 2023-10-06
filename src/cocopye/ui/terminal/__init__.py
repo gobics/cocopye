@@ -31,13 +31,12 @@ def main() -> None:
     if config.ARGS.subcommand in ["run", "database"]:
         set_num_threads(int(config.ARGS.threads))
 
-    if config.ARGS.subcommand == "cleanup":
-        cleanup()
-        sys.exit(0)
-
     if config.ARGS.subcommand == "toolbox":
         if config.ARGS.update_database:
             update_cocopye_db(constants.COCOPYE_DB, config.CONFIG["external"]["cocopye_db"])
+            sys.exit(0)
+        if config.ARGS.cleanup:
+            cleanup()
             sys.exit(0)
 
     check_and_download_dependencies()

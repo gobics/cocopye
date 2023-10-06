@@ -78,14 +78,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     toolbox_parser.add_argument("--update-database", action='store_true', help="Update CoCoPyE database")
+    toolbox_parser.add_argument("--cleanup", action="store_true",
+                                help="Remove automatically downloaded/generated files")
 
-    # Other subparsers
-
-    subparsers.add_parser(
-        "cleanup",
-        help="Remove automatically downloaded/generated files",
-        description="Remove automatically downloaded/generated files"
-    )
+    # Subparser web
 
     if CONFIG["advanced"]["enable_webserver"]:
         subparsers.add_parser(
