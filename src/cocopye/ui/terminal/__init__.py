@@ -143,6 +143,11 @@ def run():
     taxonomy = query_mat.taxonomy()
     knn_scores = query_mat.knn_scores()
 
+    notes = []
+    for idx in range(len(bin_ids)):
+        # Currently we do not have any additional notes. But at least we could add some if we want.
+        notes.append("")
+
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
         "bin," +
@@ -157,7 +162,8 @@ def run():
         "2_contamination," +
         "count_length_ratio," +
         "knn_score," +
-        "taxonomy\n"
+        "taxonomy," +
+        "notes\n"
     )
     for idx in range(len(bin_ids)):
         outfile.write(
@@ -173,7 +179,8 @@ def run():
             str(ml_estimates_cont[idx]) + "," +
             str(count_ratio[idx]) + "," +
             str(knn_scores[idx]) + "," +
-            taxonomy[idx] + "\n"
+            taxonomy[idx] + "," +
+            notes[idx] + "\n"
         )
     outfile.close()
 
