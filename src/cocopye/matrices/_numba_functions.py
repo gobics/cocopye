@@ -38,7 +38,7 @@ def estimate_njit(
     intended for evaluation purposes.
     """
     if knn_inds is None:
-        knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)
+        knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)[0]
         knn_mat = mat[knn_mat_idx, :]
     else:
         knn_mat = mat[knn_inds, :]
@@ -65,15 +65,16 @@ def nearest_neighbors_idx_njit_mat(
         db_mat: npt.NDArray[np.uint8],
         q_mat: npt.NDArray[np.uint8],
         k: int
-) -> npt.NDArray[np.int64]:
+) -> Tuple[npt.NDArray[np.int64], npt.NDArray[np.float32]]:
     knn_inds = np.zeros((q_mat.shape[0], k), dtype=np.uint64)
+    knn_scores = np.zeros(q_mat.shape[0], dtype=np.float32)
     for idx in prange(q_mat.shape[0]):
-        knn_inds[idx] = nearest_neighbors_idx_njit(db_mat, q_mat[idx], k)
-    return knn_inds
+        knn_inds[idx], knn_scores[idx] = nearest_neighbors_idx_njit(db_mat, q_mat[idx], k)
+    return knn_inds, knn_scores
 
 
 @njit(parallel=True)
-def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
+def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.uint8], k: int) -> Tuple[npt.NDArray[np.int64], np.float32]:
     """
     Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
     `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
@@ -91,9 +92,11 @@ def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.u
     eq_count = np.zeros(num_refs)
     norm_vec = np.sqrt((mat > 0).sum(axis=1))
     for idx in prange(len(mat)):
-        eq_count[idx] = np.sum(np.logical_and(np.logical_and(0 < vec, vec < 255), mat[idx] == vec)) / norm_vec[idx]
+        eq_count[idx] = np.sum(np.logical_and(np.logical_and(0 < vec, vec < 255), mat[idx] == vec)) / norm_vec[idx] / np.sqrt((vec > 0).sum())
 
-    return np.flip(np.argsort(eq_count))[:k]
+    inds = np.flip(np.argsort(eq_count))[:k]
+
+    return inds, eq_count[inds].mean()
 
 
 @njit

@@ -97,7 +97,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         :return: A numpy array containing the indices of the nearest neighbors.
         """
-        return nearest_neighbors_idx_njit(self._mat, vec, k)
+        return nearest_neighbors_idx_njit(self._mat, vec, k)[0]
 
     def universal_markers(self, threshold: float = 0.95) -> npt.NDArray[np.uint32]:
         return np.where(np.count_nonzero(self._mat == 1, axis=0) / self._mat.shape[0] >= threshold)[0]
@@ -132,6 +132,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     _db_metadata: Optional[pd.DataFrame] = None
     _k: Optional[int] = None
     _knn_inds: Optional[npt.NDArray[np.uint64]] = None
+    _knn_scores: Optional[npt.NDArray[np.float32]] = None
 
     def __init__(self, mat: npt.NDArray[np.uint8]):
         """
@@ -146,7 +147,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
         if k is not None:
             self._k = k
-            self._knn_inds = nearest_neighbors_idx_njit_mat(self._db_mat, self._mat, self._k)
+            self._knn_inds, self._knn_scores = nearest_neighbors_idx_njit_mat(self._db_mat, self._mat, self._k)
 
         return self
 
@@ -155,6 +156,9 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
             return None
 
         return self._k, self._knn_inds
+
+    def knn_scores(self) -> Optional[npt.NDArray[np.float32]]:
+        return self._knn_scores
 
     def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.float32]:
         submatrix = self._mat[:, markers]

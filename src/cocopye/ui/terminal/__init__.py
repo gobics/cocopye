@@ -111,7 +111,7 @@ def run():
         load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
         pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "metadata.csv"), sep=",")
     )
-    query_mat, bin_ids, _ = count_pfams(
+    query_mat, bin_ids, count_ratio = count_pfams(
         config.CONFIG["external"]["uproc_orf_bin"],
         config.CONFIG["external"]["uproc_prot_bin"],
         os.path.join(config.CONFIG["external"]["uproc_pfam_db"], pfam_version),
@@ -141,6 +141,7 @@ def run():
         os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle")).clip(0, 1000000)
 
     taxonomy = query_mat.taxonomy()
+    knn_scores = query_mat.knn_scores()
 
     outfile = open(config.ARGS.outfile, "w")
     outfile.write(
@@ -154,6 +155,8 @@ def run():
         "1_num_markers," +
         "2_completeness," +
         "2_contamination," +
+        "count_length_ratio," +
+        "knn_score," +
         "taxonomy\n"
     )
     for idx in range(len(bin_ids)):
@@ -168,6 +171,8 @@ def run():
             str(estimates[idx, 2]) + "," +
             str(ml_estimates_comp[idx]) + "," +
             str(ml_estimates_cont[idx]) + "," +
+            str(count_ratio[idx]) + "," +
+            str(knn_scores[idx]) + "," +
             taxonomy[idx] + "\n"
         )
     outfile.close()

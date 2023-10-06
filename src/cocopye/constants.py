@@ -3,8 +3,8 @@
 K = 4
 """Number of nearest neighbors"""
 
-RESOLUTION_COMP = 8
-RESOLUTION_CONT = 12
+RESOLUTION_COMP = 10
+RESOLUTION_CONT = 10
 """Histogram resolution"""
 
 # === DOWNLOAD URLS ====================================================================================================

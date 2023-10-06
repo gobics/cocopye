@@ -20,7 +20,7 @@ def count_pfams(
         bin_folder: str,
         file_extension: str = "fna",
         num_threads: int = 8
-) -> Tuple[npt.NDArray[np.uint8], List[str], Dict[str, int]]:
+) -> Tuple[npt.NDArray[np.uint8], List[str], List[float]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
     considered to be one bin. Sequence headers inside the files (most likely contig ids) are ignored.
@@ -63,17 +63,18 @@ def count_pfams(
     process_orf.stdin.close()
     process_orf.wait()
 
-    pfam_counts, sequences = count_pfams_async.get()
+    pfam_counts, sequences, total_counts = count_pfams_async.get()
+    count_ratio = [total_counts[seq] / lengths[seq] for seq in sequences]
 
     result, errors = process_prot.communicate()
 
     if process_prot.returncode != 0:
         raise Exception(errors)
 
-    return pfam_counts, sequences, lengths
+    return pfam_counts, sequences, count_ratio
 
 
-def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.NDArray[np.uint8], List[str]]:
+def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.NDArray[np.uint8], List[str], Dict[str, int]]:
     pfams: Dict[str, List[int]] = {}
     sequences = []
 
@@ -100,4 +101,6 @@ def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.ND
                 continue
             count_mat[idx, pfam] += 1
 
-    return count_mat, sequences
+    total_counts = {key: len(pfams[key]) for key in pfams}
+
+    return count_mat, sequences, total_counts
