@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import zipfile
@@ -25,7 +26,9 @@ def check_uproc(uproc_bin: str) -> Tuple[int, str, str]:
     return 0, "uproc", _TICK + " UProC\t\t\t" + _green(version)
 
 
-def build_uproc_prot(url: str, install_dir: str) -> None:
+def build_uproc_prot(url: str, install_dir: str, verbose: bool = False) -> None:
+    output = subprocess.DEVNULL if not verbose else None
+
     with tempfile.TemporaryDirectory() as tmpdir:
         download(url, tmpdir, "uproc.tar.gz", "- Downloading UProC repository")
         print("- Downloading UProC repository ✓")
@@ -38,20 +41,29 @@ def build_uproc_prot(url: str, install_dir: str) -> None:
         print("- Running configure", end="", flush=True)
         configure = subprocess.Popen(["./configure", "--prefix", install_dir],
                                      cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # TODO: hardcoded
-        configure.wait()
+                                     stdout=output, stderr=output)  # TODO: hardcoded
+        if configure.wait() != 0:
+            print("\n\nError while running configure. Rerun the command with '--verbose' for subprocess output.")
+            sys.exit(1)
+
         print("\r- Running configure ✓")
 
         print("- Running make", end="", flush=True)
         make = subprocess.Popen("make", cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # TODO: hardcoded
-        make.wait()
+                                stdout=output, stderr=output)  # TODO: hardcoded
+        if make.wait() != 0:
+            print("\n\nError while running make. Rerun the command with '--verbose' for subprocess output.")
+            sys.exit(1)
+
         print("\r- Running make ✓")
 
         print("- Running make install", end="", flush=True)
         install = subprocess.Popen(["make", "install"], cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # TODO: hardcoded
-        install.wait()
+                                   stdout=output, stderr=output)  # TODO: hardcoded
+        if install.wait() != 0:
+            print("\n\nError while running make install. Rerun the command with '--verbose' for subprocess output.")
+            sys.exit(1)
+
         print("\r- Running make install ✓\n")
 
 

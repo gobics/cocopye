@@ -2,6 +2,7 @@ import gzip
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import zipfile
@@ -80,7 +81,9 @@ def _check_folder(folder: str, files: List[str]) -> str:
     return "found" if all([file in content for file in files]) else "error"
 
 
-def download_pfam_db(url: str, import_bin: str, version: int = 28) -> None:
+def download_pfam_db(url: str, import_bin: str, version: int = 28, verbose: bool = False) -> None:
+    output = subprocess.DEVNULL if not verbose else None
+
     # not using /tmp, because of the large file size
     with tempfile.TemporaryDirectory(prefix="cocopye_", dir=user_cache_dir(None)) as tmpdir:
         download(
@@ -102,8 +105,11 @@ def download_pfam_db(url: str, import_bin: str, version: int = 28) -> None:
         uproc_import = subprocess.Popen([import_bin,
                                          os.path.join(tmpdir, "pfam.uprocdb"),
                                          os.path.join(user_data_dir("cocopye"), "pfam_db", str(version))],
-                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        uproc_import.wait()
+                                        stdout=output, stderr=output)
+        if uproc_import.wait() != 0:
+            print("\n\nError while running uproc-import. Rerun the command with '--verbose' for subprocess output.")
+            sys.exit(1)
+
         print("\r- Importing database ✓                             \n")
 
 

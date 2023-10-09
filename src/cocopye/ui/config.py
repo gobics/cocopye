@@ -82,7 +82,8 @@ def parse_args() -> argparse.Namespace:
     subparsers_toolbox.add_parser("update-database", help="Update CoCoPyE database")
     subparsers_toolbox.add_parser("cleanup", help="Remove automatically downloaded/generated files")
     subparsers_toolbox.add_parser("testrun", help="Testrun (TODO: Description)")
-    subparsers_toolbox.add_parser("download-dependencies", help="Download missing files")
+    dl_subparser = subparsers_toolbox.add_parser("download-dependencies", help="Download missing files")
+    dl_subparser.add_argument("-v", "--verbose", action='store_true', help="Show output of subprocesses")
 
     # Subparser web
 

@@ -115,7 +115,7 @@ def download_dependencies(missing: List[str]) -> None:
 
     if "uproc" in missing:
         if opsys == "Linux":
-            build_uproc_prot(constants.UPROC["SRC"], os.path.join(user_data_dir("cocopye"), "uproc"))
+            build_uproc_prot(constants.UPROC["SRC"], os.path.join(user_data_dir("cocopye"), "uproc"), config.ARGS.verbose)
 
             change_config(
                 "external", "uproc_prot_bin",
@@ -153,7 +153,8 @@ def download_dependencies(missing: List[str]) -> None:
         download_pfam_db(
             constants.PFAM_DB,
             config.CONFIG["external"]["uproc_import_bin"],
-            24 if config.ARGS.pfam24 else 28
+            24 if config.ARGS.pfam24 else 28,
+            config.ARGS.verbose
         )
 
         change_config(
