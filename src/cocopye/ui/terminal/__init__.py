@@ -1,7 +1,9 @@
 import os
 import shutil
+import subprocess
 import sys
 import importlib.util
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -37,6 +39,26 @@ def main() -> None:
             sys.exit(0)
         if config.ARGS.cleanup:
             cleanup()
+            sys.exit(0)
+        if config.ARGS.testrun:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                command = (["cocopye"]
+                           + (["--offline"] if config.ARGS.offline else [])
+                           + (["--pfam24"] if config.ARGS.pfam24 else [])
+                           + ["run", "-i", os.path.join(config.CONFIG["external"]["cocopye_db"], "testdata"),
+                              "-o", os.path.join(tmpdir, "tempfile.csv")])
+
+                print("Starting testrun.\n\033[37m(" + " ".join(command) + ")\033[0m")
+                print("=======================================================================\n")
+                cocopye_process = subprocess.Popen(command)
+                cocopye_process.wait()
+                print("\n=======================================================================")
+
+                if cocopye_process.returncode == 0:
+                    print("\n\033[92mTestrun sucessful.\033[0m")
+                else:
+                    print("\n\033[91mTestrun failed.\033[0m")
+
             sys.exit(0)
 
     check_and_download_dependencies()

@@ -62,6 +62,8 @@ def new_db_version_available(current_version):
         version = requests.get(constants.COCOPYE_DB_LATEST_RELEASE).json()["tag_name"]
     except requests.exceptions.ConnectionError:
         return False
+    except KeyError:
+        return False
 
     versions = [version[1:], current_version[1:]]
     versions.sort(key=Version)
