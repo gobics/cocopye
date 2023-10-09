@@ -34,13 +34,13 @@ def main() -> None:
         set_num_threads(int(config.ARGS.threads))
 
     if config.ARGS.subcommand == "toolbox":
-        if config.ARGS.update_database:
+        if config.ARGS.subcommand_toolbox == "update-database":
             update_cocopye_db(constants.COCOPYE_DB, config.CONFIG["external"]["cocopye_db"])
             sys.exit(0)
-        if config.ARGS.cleanup:
+        if config.ARGS.subcommand_toolbox == "cleanup":
             cleanup()
             sys.exit(0)
-        if config.ARGS.testrun:
+        if config.ARGS.subcommand_toolbox == "testrun":
             with tempfile.TemporaryDirectory() as tmpdir:
                 command = (["cocopye"]
                            + (["--offline"] if config.ARGS.offline else [])
@@ -60,8 +60,14 @@ def main() -> None:
                     print("\n\033[91mTestrun failed.\033[0m")
 
             sys.exit(0)
+        if config.ARGS.subcommand_toolbox == "download-dependencies":
+            check_and_download_dependencies()
+            sys.exit(0)
+        else:
+            print("Unrecognized subcommand. Exiting.")
+            sys.exit(1)
 
-    check_and_download_dependencies()
+    check_and_download_dependencies(check_only=True)
 
     if config.ARGS.subcommand == "database":
         create_database()

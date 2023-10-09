@@ -77,10 +77,12 @@ def parse_args() -> argparse.Namespace:
         description="Tools to update or repair CoCoPyE (TODO: better description)"
     )
 
-    toolbox_parser.add_argument("--update-database", action='store_true', help="Update CoCoPyE database")
-    toolbox_parser.add_argument("--cleanup", action="store_true",
-                                help="Remove automatically downloaded/generated files")
-    toolbox_parser.add_argument("--testrun", action="store_true", help="Testrun (TODO: Description)")
+    subparsers_toolbox = toolbox_parser.add_subparsers(title="subcommands", dest="subcommand_toolbox")
+
+    subparsers_toolbox.add_parser("update-database", help="Update CoCoPyE database")
+    subparsers_toolbox.add_parser("cleanup", help="Remove automatically downloaded/generated files")
+    subparsers_toolbox.add_parser("testrun", help="Testrun (TODO: Description)")
+    subparsers_toolbox.add_parser("download-dependencies", help="Download missing files")
 
     # Subparser web
 

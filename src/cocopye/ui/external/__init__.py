@@ -25,7 +25,7 @@ from ..config import change_config
 from ... import constants
 
 
-def check_and_download_dependencies() -> None:
+def check_and_download_dependencies(check_only: bool = False) -> None:
     """
     This function checks if all neccessary dependencies are available. If there's something missing, it will offer the
     user to download the missing files automatically. The function writes some status messages to stdout and waits for
@@ -42,18 +42,13 @@ def check_and_download_dependencies() -> None:
         sys.exit(1)
 
     if len(missing) > 0:
-        print("\nSome dependencies are missing.")
-        print("If you have already downlaoded them, you can specify their path in the configuration file.")
-        print("Apart from that, CoCoPyE can try to download them automatically.")
-        print()
+        if check_only:
+            print("\nSome dependencies are missing.")
+            print("If you have already downlaoded them, you can specify their path in the configuration file.")
+            print("You can also use 'cocopye toolbox download-dependencies' to automatically download missing files.")
+            sys.exit(1)
         if config.ARGS.offline:
             print("You are in offline mode. Disable it if you want to use the automatic download.")
-            print("Exiting.\n")
-            sys.exit(1)
-        download_now = input("Download missing dependencies now? [Y/n] ")
-        print()
-        if download_now.strip() == "N" or download_now.strip() == "n":
-            print("Missing dependencies were not downloaded. Exiting.\n")
             sys.exit(1)
 
         download_dependencies(missing)
@@ -65,7 +60,7 @@ def check_and_download_dependencies() -> None:
             print("bug in the application. Exiting.")
             sys.exit(1)
 
-        print("Check successful. Continung execution of the application.\n")
+        print("Check successful.\n")
 
 
 def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
