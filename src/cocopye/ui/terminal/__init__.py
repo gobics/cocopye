@@ -182,14 +182,14 @@ def run():
             completeness.append(preestimates_arc[idx, 0])
             contamination.append(preestimates_arc[idx, 1])
 
-        if completeness[idx] < 0.2 or completeness[idx] < 2 * contamination[idx]:
+        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
             continue
 
         stage[idx] = 2
         completeness[idx] = estimates[idx, 0]
         contamination[idx] = estimates[idx, 1]
 
-        if completeness[idx] < 0.55 or completeness[idx] < 2 * contamination[idx]:
+        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
             continue
 
         stage[idx] = 3
@@ -203,23 +203,9 @@ def run():
 
     outfile = open(config.ARGS.outfile, "w")
     if config.ARGS.verbosity == "everything":
-        outfile.write(
-            "bin," +
-            "stage," +
-            "1_completeness_arc," +
-            "1_contamination_arc," +
-            "1_completeness_bac," +
-            "1_contamination_bac," +
-            "2_completeness," +
-            "2_contamination," +
-            "2_num_markers," +
-            "3_completeness," +
-            "3_contamination," +
-            "count_length_ratio," +
-            "knn_score," +
-            "taxonomy," +
-            "notes\n"
-        )
+        outfile.write("bin,stage,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
+                      "2_completeness,2_contamination,2_num_markers,3_completeness,3_contamination,"
+                      "count_length_ratio,knn_score,taxonomy,notes\n")
         for idx in range(len(bin_ids)):
             outfile.write(
                 bin_ids[idx] + "," +
@@ -239,17 +225,7 @@ def run():
                 notes[idx] + "\n"
             )
     elif config.ARGS.verbosity == "extended":
-        outfile.write(
-            "bin," +
-            "completeness," +
-            "contamination," +
-            "stage," +
-            "num_markers," +
-            "count_length_ratio," +
-            "knn_score," +
-            "taxonomy," +
-            "notes\n"
-        )
+        outfile.write("bin,completeness,contamination,stage,num_markers,count_length_ratio,knn_score,taxonomy,notes\n")
         for idx in range(len(bin_ids)):
             outfile.write(
                 bin_ids[idx] + "," +
@@ -263,14 +239,7 @@ def run():
                 notes[idx] + "\n"
             )
     else:
-        outfile.write(
-            "bin," +
-            "completeness," +
-            "contamination," +
-            "stage," +
-            "taxonomy," +
-            "notes\n"
-        )
+        outfile.write("bin,completeness,contamination,stage,taxonomy,notes\n")
         for idx in range(len(bin_ids)):
             outfile.write(
                 bin_ids[idx] + "," +

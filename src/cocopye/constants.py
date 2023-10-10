@@ -4,8 +4,14 @@ K = 4
 """Number of nearest neighbors"""
 
 RESOLUTION_COMP = 10
+"""Histogram resolution for completeness"""
 RESOLUTION_CONT = 10
-"""Histogram resolution"""
+"""Histogram resolution for contamination"""
+
+TRANSITION_1_2_MIN_COMP = 0.2
+"""Minimal completeness to allow a bin to move from stage 1 to 2"""
+TRANSITION_2_3_MIN_COMP = 0.55
+"""Minimal completeness to allow a bin to move from stage 2 to 3"""
 
 # === DOWNLOAD URLS ====================================================================================================
 
@@ -28,3 +34,4 @@ COCOPYE_DB = "https://github.com/gobics/cocopye-database/releases/latest/downloa
 """CocoPyE database download path"""
 
 COCOPYE_DB_LATEST_RELEASE = "https://api.github.com/repos/gobics/cocopye-database/releases/latest"
+"""Latest release of the CoCoPyE database (GitHub API). This is used for update checking."""
