@@ -22,12 +22,12 @@ app = Celery(
 def estimate_task(self, config, pfam_version, infolder: str):
     self.update_state(state="RUNNING")
 
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], pfam_version, "mat_pfam.npy")))
+    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], pfam_version, "count_matrix.npz")))
 
     query_mat, bin_ids, _ = count_pfams(
         config["external"]["uproc_orf_bin"],
-        config["external"]["uproc_bin"],
-        os.path.join(config["external"]["uproc_db"], pfam_version),
+        config["external"]["uproc_prot_bin"],
+        os.path.join(config["external"]["uproc_pfam_db"], pfam_version),
         config["external"]["uproc_models"],
         infolder,
     )

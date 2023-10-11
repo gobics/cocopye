@@ -12,6 +12,9 @@ import random
 
 from .. import config
 from .tasks import estimate_task
+from ..config import parse_config
+
+CONFIG = parse_config()[1]
 
 app = FastAPI()
 
@@ -19,7 +22,7 @@ app = FastAPI()
 @app.post("/upload")
 async def upload(file: UploadFile):
     ws_id = random.randint(0, 100000000)
-    tmpdir = config.CONFIG["server"]["tmpdir"]
+    tmpdir = CONFIG["server"]["tmpdir"]
 
     os.makedirs(os.path.join(tmpdir, str(ws_id)))
 
@@ -34,7 +37,7 @@ async def upload(file: UploadFile):
 async def ws_endpoint(ws: WebSocket, client_id: int):
     await ws.accept()
 
-    infolder = os.path.join(config.CONFIG["server"]["tmpdir"], str(client_id))
+    infolder = os.path.join(CONFIG["server"]["tmpdir"], str(client_id))
     infile = os.listdir(infolder)[0]
 
     await ws.send_text("Checking input file")
@@ -45,7 +48,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             shutil.rmtree(infolder)
             return
 
-    task = estimate_task.delay(config.CONFIG, "24" if config.ARGS.pfam24 else "28", infolder)
+    task = estimate_task.delay(CONFIG, "24" if os.environ["COCOPYE_PFAM24"] == "1" else "28", infolder)
 
     if task.state == "PENDING":
         await ws.send_text("Waiting for task execution")
@@ -82,6 +85,8 @@ app.mount(
 
 
 def run_server():
+    os.environ["COCOPYE_PFAM24"] = "1" if config.ARGS.pfam24 else "0"
+
     # It seems to be quite difficult to get configuration options into the tasks module when it is called by celery.
     # Environment variables are probably not the best solution, but at least they work (or they don't; TODO).
     celery_env = os.environ.copy()
