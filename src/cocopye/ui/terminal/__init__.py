@@ -15,9 +15,9 @@ from numba import set_num_threads
 from .. import config
 from ..external import check_and_download_dependencies
 from ..external.data import update_cocopye_db
-from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
+from ...matrices import DatabaseMatrix
 from ...pfam import count_pfams
-from ... import constants
+from ... import constants, core
 
 
 def main() -> None:
@@ -132,123 +132,31 @@ def create_database() -> None:
 
 
 def run():
-    pfam_version = "24" if config.ARGS.pfam24 else "28"
-
-    db_mat = DatabaseMatrix(
-        load_u8mat_from_file(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "count_matrix.npz")),
-        pd.read_csv(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "metadata.csv"), sep=",")
-    )
-    query_mat, bin_ids, count_ratio = count_pfams(
-        config.CONFIG["external"]["uproc_orf_bin"],
-        config.CONFIG["external"]["uproc_prot_bin"],
-        os.path.join(config.CONFIG["external"]["uproc_pfam_db"], pfam_version),
-        config.CONFIG["external"]["uproc_models"],
-        config.ARGS.infolder,
-        config.ARGS.file_extension,
-        config.ARGS.threads
-    )
-    query_mat = QueryMatrix(query_mat).with_database(db_mat, constants.K)
-
-    assert len(bin_ids) == query_mat.mat().shape[0]
-
-    universal_arc = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_Archaea.npy"))
-    universal_bac = np.load(os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "universal_Bacteria.npy"))
-
-    preestimates_arc = query_mat.preestimates(universal_arc)
-    preestimates_bac = query_mat.preestimates(universal_bac)
-
-    estimates = query_mat.estimates()
-
-    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP)
-    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT)
-
-    ml_estimates_comp = feature_mat_comp.ml_estimates(
-        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_comp.pickle")).clip(0, 1)
-    ml_estimates_cont = feature_mat_cont.ml_estimates(
-        os.path.join(config.CONFIG["external"]["cocopye_db"], pfam_version, "model_cont.pickle")).clip(0, 1000000)
-
-    taxonomy = query_mat.taxonomy()
-    knn_scores = query_mat.knn_scores()
-
-    completeness = []
-    contamination = []
-    stage = []
-    for idx in range(len(bin_ids)):
-        stage.append(1)
-        if preestimates_bac[idx, 0] > preestimates_arc[idx, 0]:
-            completeness.append(preestimates_bac[idx, 0])
-            contamination.append(preestimates_bac[idx, 1])
-        else:
-            completeness.append(preestimates_arc[idx, 0])
-            contamination.append(preestimates_arc[idx, 1])
-
-        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
-            continue
-
-        stage[idx] = 2
-        completeness[idx] = estimates[idx, 0]
-        contamination[idx] = estimates[idx, 1]
-
-        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
-            continue
-
-        stage[idx] = 3
-        completeness[idx] = ml_estimates_comp[idx]
-        contamination[idx] = ml_estimates_cont[idx]
-
-    notes = []
-    for idx in range(len(bin_ids)):
-        # Currently we do not have any additional notes. But at least we could add some if we want.
-        notes.append("")
+    results = core.core(config.CONFIG["external"]["cocopye_db"],
+                        config.CONFIG["external"]["uproc_orf_bin"],
+                        config.CONFIG["external"]["uproc_prot_bin"],
+                        config.CONFIG["external"]["uproc_pfam_db"],
+                        config.CONFIG["external"]["uproc_models"],
+                        config.ARGS.infolder,
+                        24 if config.ARGS.pfam24 else 28,
+                        config.ARGS.file_extension,
+                        config.ARGS.threads
+                        )
 
     outfile = open(config.ARGS.outfile, "w")
+
     if config.ARGS.verbosity == "everything":
         outfile.write("bin,stage,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
                       "2_completeness,2_contamination,2_num_markers,3_completeness,3_contamination,"
                       "count_length_ratio,knn_score,taxonomy,notes\n")
-        for idx in range(len(bin_ids)):
-            outfile.write(
-                bin_ids[idx] + "," +
-                str(stage[idx]) + "," +
-                str(preestimates_arc[idx, 0]) + "," +
-                str(preestimates_arc[idx, 1]) + "," +
-                str(preestimates_bac[idx, 0]) + "," +
-                str(preestimates_bac[idx, 1]) + "," +
-                str(estimates[idx, 0]) + "," +
-                str(estimates[idx, 1]) + "," +
-                str(estimates[idx, 2]) + "," +
-                str(ml_estimates_comp[idx]) + "," +
-                str(ml_estimates_cont[idx]) + "," +
-                str(count_ratio[idx]) + "," +
-                str(knn_scores[idx]) + "," +
-                taxonomy[idx] + "," +
-                notes[idx] + "\n"
-            )
     elif config.ARGS.verbosity == "extended":
         outfile.write("bin,completeness,contamination,stage,num_markers,count_length_ratio,knn_score,taxonomy,notes\n")
-        for idx in range(len(bin_ids)):
-            outfile.write(
-                bin_ids[idx] + "," +
-                str(completeness[idx]) + "," +
-                str(contamination[idx]) + "," +
-                str(stage[idx]) + "," +
-                (str(estimates[idx, 2]) if stage[idx] >= 2 else "") + "," +
-                str(count_ratio[idx]) + "," +
-                str(knn_scores[idx]) + "," +
-                taxonomy[idx] + "," +
-                notes[idx] + "\n"
-            )
     else:
         outfile.write("bin,completeness,contamination,stage,taxonomy,notes\n")
-        for idx in range(len(bin_ids)):
-            outfile.write(
-                bin_ids[idx] + "," +
-                str(completeness[idx]) + "," +
-                str(contamination[idx]) + "," +
-                str(stage[idx]) + "," +
-                taxonomy[idx] + "," +
-                notes[idx] + "\n"
-            )
+
+    for result in results:
+        outfile.write(result.to_csv(config.ARGS.verbosity) + "\n")
+
     outfile.close()
 
 

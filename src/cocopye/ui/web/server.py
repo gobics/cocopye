@@ -40,18 +40,18 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
     infolder = os.path.join(CONFIG["server"]["tmpdir"], str(client_id))
     infile = os.listdir(infolder)[0]
 
-    await ws.send_text("Checking input file")
+    await ws.send_json({"status": "progress", "content": "Checking input file"})
     for record in SeqIO.parse(os.path.join(infolder, infile), "fasta"):
         if any(c not in "ACGTN" for c in record.seq):
-            await ws.send_text("Error: Invalid input file.")
+            await ws.send_json({"status": "error", "content": "Invalid input file."})
             await ws.close()
             shutil.rmtree(infolder)
             return
 
-    task = estimate_task.delay(CONFIG, "24" if os.environ["COCOPYE_PFAM24"] == "1" else "28", infolder)
+    task = estimate_task.delay(CONFIG, 24 if os.environ["COCOPYE_PFAM24"] == "1" else 28, infolder)
 
     if task.state == "PENDING":
-        await ws.send_text("Waiting for task execution")
+        await ws.send_json({"status": "progress", "content": "Waiting for task execution"})
 
     while task.state == "PENDING":
         # This is the best solution I found. There does not seem to be somthing like await estimates and estimates.get()
@@ -60,19 +60,16 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
         # uvicorn with three workers, but alredy the second one freezes.)
         await asyncio.sleep(0.3)
 
-    await ws.send_text("Running CoCoPyE")
+    await ws.send_json({"status": "progress", "content": "Running CoCoPyE"})
 
     while task.state == "RUNNING":
         await asyncio.sleep(0.3)
 
     if task.state == "SUCCESS":
-        estimates = task.get()
-        await ws.send_text(
-            "Completeness: " + f'{estimates[0] * 100:.2f}%' + ", "
-            "Contamination: " + f'{estimates[1] * 100:.2f}%'
-        )
+        result = task.get()
+        await ws.send_json({"status": "result", "content": result})
     else:
-        await ws.send_text("Something went wrong.")
+        await ws.send_json({"status": "error", "content": "Something went wrong."})
 
     await ws.close()
     shutil.rmtree(infolder)

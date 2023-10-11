@@ -1,9 +1,9 @@
 import os
+from typing import Dict
 
 from celery import Celery
 
-from ...matrices import DatabaseMatrix, load_u8mat_from_file, QueryMatrix
-from ...pfam import count_pfams
+from ... import core
 
 
 app = Celery(
@@ -19,19 +19,18 @@ app = Celery(
 
 
 @app.task(bind=True, time_limit=os.getenv("CELERY_TIME_LIMIT"))
-def estimate_task(self, config, pfam_version, infolder: str):
+def estimate_task(self, config, pfam_version: int, infolder: str) -> Dict[str, str]:
     self.update_state(state="RUNNING")
 
-    db_mat = DatabaseMatrix(load_u8mat_from_file(os.path.join(config["external"]["cocopye_db"], pfam_version, "count_matrix.npz")))
+    result = core.core(config["external"]["cocopye_db"],
+                       config["external"]["uproc_orf_bin"],
+                       config["external"]["uproc_prot_bin"],
+                       config["external"]["uproc_pfam_db"],
+                       config["external"]["uproc_models"],
+                       infolder,
+                       pfam_version,
+                       "fna",
+                       1
+                       )[0]
 
-    query_mat, bin_ids, _ = count_pfams(
-        config["external"]["uproc_orf_bin"],
-        config["external"]["uproc_prot_bin"],
-        os.path.join(config["external"]["uproc_pfam_db"], pfam_version),
-        config["external"]["uproc_models"],
-        infolder,
-    )
-
-    query_mat = QueryMatrix(query_mat).with_database(db_mat, 4)
-
-    return list(query_mat.estimates()[0])
+    return result.to_web()
