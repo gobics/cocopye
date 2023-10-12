@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import List, Dict
 
 import numpy as np
@@ -74,10 +75,12 @@ def core(cocopye_db: str,
          infolder: str,
          pfam_version: int,
          file_extension: str,
-         num_threads: int
+         num_threads: int,
+         print_progress: bool = True
          ) -> List[Result]:
     pfam_version = str(pfam_version)
 
+    log("Loading CoCoPyE database", print_progress)
     db_mat = DatabaseMatrix(
         load_u8mat_from_file(os.path.join(cocopye_db, pfam_version, "count_matrix.npz")),
         pd.read_csv(os.path.join(cocopye_db, pfam_version, "metadata.csv"), sep=",")
@@ -90,12 +93,16 @@ def core(cocopye_db: str,
         uproc_model,
         infolder,
         file_extension,
-        num_threads
+        num_threads,
+        print_progress
     )
+
+    log("Determining nearest neighbors", print_progress)
     query_mat = QueryMatrix(query_mat).with_database(db_mat, constants.K)
 
     assert len(bin_ids) == query_mat.mat().shape[0]
 
+    log("Calculating preestimates", print_progress)
     universal_arc = np.load(
         os.path.join(cocopye_db, pfam_version, "universal_Archaea.npy"))
     universal_bac = np.load(
@@ -104,8 +111,9 @@ def core(cocopye_db: str,
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
 
-    estimates = query_mat.estimates()
+    estimates = query_mat.estimates(print_progress=print_progress)
 
+    log("Calculating ML estimates", print_progress)
     feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP)
     feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT)
 
@@ -114,6 +122,7 @@ def core(cocopye_db: str,
     ml_estimates_cont = feature_mat_cont.ml_estimates(
         os.path.join(cocopye_db, pfam_version, "model_cont.pickle")).clip(0, 1000000)
 
+    log("Processing results", print_progress)
     taxonomy = query_mat.taxonomy()
     knn_scores = query_mat.knn_scores()
 
@@ -174,3 +183,8 @@ def core(cocopye_db: str,
         results.append(result)
 
     return results
+
+
+def log(message: str, show: bool = True):
+    if show:
+        print("\033[0;37m[" + str(datetime.now()) + "]\033[0m " + message)

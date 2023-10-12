@@ -15,6 +15,7 @@ from numba import set_num_threads
 from .. import config
 from ..external import check_and_download_dependencies
 from ..external.data import update_cocopye_db
+from ...core import log
 from ...matrices import DatabaseMatrix
 from ...pfam import count_pfams
 from ... import constants, core
@@ -143,6 +144,7 @@ def run():
                         config.ARGS.threads
                         )
 
+    log("Saving results to file")
     outfile = open(config.ARGS.outfile, "w")
 
     if config.ARGS.verbosity == "everything":

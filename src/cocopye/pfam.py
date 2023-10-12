@@ -1,6 +1,7 @@
 import _io
 import os
 import subprocess
+from datetime import datetime
 from multiprocessing.pool import ThreadPool
 from typing import List, Optional, Tuple, Dict
 
@@ -19,7 +20,8 @@ def count_pfams(
         model_dir: str,
         bin_folder: str,
         file_extension: str = "fna",
-        num_threads: int = 8
+        num_threads: int = 8,
+        print_progress: bool = True
 ) -> Tuple[npt.NDArray[np.uint8], List[str], List[float]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
@@ -54,7 +56,7 @@ def count_pfams(
 
     lengths = {}
 
-    for bin_id in tqdm(bins, ncols=100, desc="- Counting Pfams"):
+    for bin_id in tqdm(bins, ncols=0, desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Counting Pfams", disable=not print_progress):
         for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta"):
             lengths[bin_id] = len(str(record.seq))
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")

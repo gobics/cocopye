@@ -12,6 +12,7 @@ A **DatabaseMatrix**, as the name implies, contains the count values of our data
 from __future__ import annotations
 
 import pickle
+from datetime import datetime
 from typing import TypeVar, Generic, cast, Tuple, Optional
 import numpy as np
 import numpy.typing as npt
@@ -170,7 +171,8 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
     def estimates(
             self,
-            frac_eq: float = 0.9
+            frac_eq: float = 0.9,
+            print_progress: bool = True
     ) -> Optional[npt.NDArray[np.float32]]:
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
@@ -183,7 +185,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         if self._db_mat is None:
             return None
 
-        with ProgressBar(total=self.mat().shape[0], ncols=100, dynamic_ncols=False, desc="- Calculating estimates") as progress_bar:
+        with ProgressBar(total=self.mat().shape[0], ncols=0, dynamic_ncols=False, desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Calculating estimates", disable=not print_progress) as progress_bar:
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 

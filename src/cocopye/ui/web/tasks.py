@@ -19,7 +19,7 @@ app = Celery(
 
 
 @app.task(bind=True, time_limit=os.getenv("CELERY_TIME_LIMIT"))
-def estimate_task(self, config, pfam_version: int, infolder: str) -> Dict[str, str]:
+def estimate_task(self, config, pfam_version: int, infolder: str, debug: bool = False) -> Dict[str, str]:
     self.update_state(state="RUNNING")
 
     result = core.core(config["external"]["cocopye_db"],
@@ -30,7 +30,8 @@ def estimate_task(self, config, pfam_version: int, infolder: str) -> Dict[str, s
                        infolder,
                        pfam_version,
                        "fna",
-                       1
+                       1,
+                       print_progress=debug
                        )[0]
 
     return result.to_web()

@@ -50,7 +50,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             return
 
     log("Starting new task")
-    task = estimate_task.delay(CONFIG, 24 if os.environ["COCOPYE_PFAM24"] == "1" else 28, infolder)
+    task = estimate_task.delay(CONFIG, 24 if os.environ["COCOPYE_PFAM24"] == "1" else 28, infolder, CONFIG["server"]["debug"])
 
     if task.state == "PENDING":
         await ws.send_json({"status": "progress", "content": "Waiting for task execution"})
