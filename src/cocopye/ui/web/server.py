@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from importlib import resources
 import os
 import subprocess
@@ -48,6 +49,7 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             shutil.rmtree(infolder)
             return
 
+    log("Starting new task")
     task = estimate_task.delay(CONFIG, 24 if os.environ["COCOPYE_PFAM24"] == "1" else 28, infolder)
 
     if task.state == "PENDING":
@@ -68,8 +70,10 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
     if task.state == "SUCCESS":
         result = task.get()
         await ws.send_json({"status": "result", "content": result})
+        log("Successfully completed task")
     else:
         await ws.send_json({"status": "error", "content": "Something went wrong."})
+        log("Failed task")
 
     await ws.close()
     shutil.rmtree(infolder)
@@ -81,8 +85,15 @@ app.mount(
 )
 
 
+def log(message: str):
+    f = open(os.path.join(CONFIG["server"]["logdir"], "server.log"), "a")
+    f.write("[" + str(datetime.now()) + "] " + message + "\n")
+    f.close()
+
+
 def run_server():
     os.environ["COCOPYE_PFAM24"] = "1" if config.ARGS.pfam24 else "0"
+    os.makedirs(CONFIG["server"]["logdir"], exist_ok=True)
 
     # It seems to be quite difficult to get configuration options into the tasks module when it is called by celery.
     # Environment variables are probably not the best solution, but at least they work (or they don't; TODO).

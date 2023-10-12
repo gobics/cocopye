@@ -5,7 +5,7 @@ import argparse
 from importlib import resources
 from typing import Tuple
 
-from appdirs import user_config_dir, user_cache_dir
+from appdirs import user_config_dir, user_cache_dir, user_log_dir
 from tomlkit import parse, dumps, TOMLDocument
 
 
@@ -118,6 +118,7 @@ def parse_config() -> Tuple[str, TOMLDocument]:
 
     default_config = parse(resources.read_text("cocopye.ui", "config.toml"))
     default_config["server"]["tmpdir"] = os.path.join(user_cache_dir("cocopye"), "server")
+    default_config["server"]["logdir"] = os.path.join(user_log_dir("cocopye"), "server")
 
     os.makedirs(user_config_dir("cocopye"), exist_ok=True)
     f = open(os.path.join(user_config_dir("cocopye"), "cocopye.toml"), "w")

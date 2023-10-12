@@ -18,6 +18,7 @@ enable_webserver = false
 
 [server]
 public_url = "localhost:8000"
+logdir = "none"
 tmpdir = "none"
 host = "127.0.0.1"
 port = 8000
