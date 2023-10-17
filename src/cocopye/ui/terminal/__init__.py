@@ -147,7 +147,7 @@ def run():
     log("Saving results to file")
     outfile = open(config.ARGS.outfile, "w")
 
-    if config.ARGS.verbosity == "everything":
+    if config.ARGS.verbosity == "full":
         outfile.write("bin,stage,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
                       "2_completeness,2_contamination,2_num_markers,3_completeness,3_contamination,"
                       "count_length_ratio,knn_score,taxonomy,notes\n")
