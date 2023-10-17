@@ -150,9 +150,9 @@ def run():
     if config.ARGS.verbosity == "full":
         outfile.write("bin,stage,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
                       "2_completeness,2_contamination,2_num_markers,3_completeness,3_contamination,"
-                      "count_length_ratio,knn_score,taxonomy,notes\n")
+                      "coding_density,knn_score,taxonomy,notes\n")
     elif config.ARGS.verbosity == "extended":
-        outfile.write("bin,completeness,contamination,stage,num_markers,count_length_ratio,knn_score,taxonomy,notes\n")
+        outfile.write("bin,completeness,contamination,stage,num_markers,coding_density,knn_score,taxonomy,notes\n")
     else:
         outfile.write("bin,completeness,contamination,stage,taxonomy,notes\n")
 
