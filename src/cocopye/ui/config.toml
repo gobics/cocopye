@@ -1,34 +1,58 @@
-# These are paths to external dependencies. They are automatically set during initialisation. You can change them to
-# point to another location, for example if you have downloaded them manually.
+# These are paths to external dependencies. They are automatically set when running 'cocopye toolbox download-dependencies'.
+# You can change them to point to another location, for example if you have downloaded them manually.
 [external]
+# Path to uproc-prot binary
 uproc_prot_bin = "uproc-prot"
+# Path to uproc-import binary
 uproc_import_bin = "uproc-import"
+# Path to uproc-orf binary
 uproc_orf_bin = "uproc-orf"
+# Path to UProC Pfam databases (the ones created by uproc-import). CoCoPyE expects two subdirectories at the specified path, '24' and '28'.
+# They should contain the database of the respective version.
 uproc_pfam_db = "none"
+# Path to UProC model
 uproc_models = "none"
+# Path to CoCoPyE database. See https://github.com/gobics/cocopye-database for more information about its contents.
 cocopye_db = "none"
 
-# These are advanced features of CoCoPyE which are most likely not required during normal use. To avoid confusion they
-# are disabled by default.
+
+# These are advanced features of CoCoPyE which are most likely not required during normal use.
+# To avoid confusion they are disabled by default. You need to enable them here to be able to use the respective subcommands.
+# You can find more information about these features in the CoCoPyE wiki (https://github.com/gobics/cocopye/wiki).
 [advanced]
-# Enable database subcommand. See TODO for more information.
+# Enable database subcommand.
 enable_db_creator = false
-# Enable web subcommand. See TODO for more information.
+# Enable web subcommand.
 enable_webserver = false
 
+
+# These are settings for the webserver provided by 'cocopye web'.
 [server]
+# Public URL of the website. I think we don't use it anymore. (Note to myself: Remove this in a future update.)
 public_url = "localhost:8000"
-logdir = "none"
-tmpdir = "none"
+# Logfile directory.
+logdir = "cocopye_server_logs"
+# Temporary direcory to store uploaded files.
+tmpdir = "cocopye_server_tmpdir"
+# Server host
 host = "127.0.0.1"
+# Server port
 port = 8000
+# Number of workers
 workers = 4
+# Enable/Disable debug mode. Increases the information written to stdout if activated.
 debug = false
 
+
+# These are settings for the Celery queue used by the webserver.
 [server.celery]
-# Due to some strange problem it is currently not possible to change this options (backend and broker). Looks like you
-# have to use redis. I will try to fix it in the future.
+# Due to some strange problem it is currently not possible to change these options (backend and broker).
+# Looks like you're stuck with redis on localhost. Sorry. I will try to fix it in the future.
 backend = "redis://localhost"
 broker = "redis://localhost"
-workers = 8
+# Number of Celery workers. If there are more requests than available workers they have to wait in the
+# queue until a worker is available.
+workers = 4
+# Time limit for a CoCoPyE task. If the time limit is exceeded the task will be aborted.
+# Use 0 to disable the limit.
 time_limit = 0
