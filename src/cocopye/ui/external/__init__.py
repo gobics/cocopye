@@ -108,12 +108,8 @@ def download_dependencies(missing: List[str]) -> None:
     from .bin import build_uproc_prot, download_uproc_win
     from .data import download_pfam_db, download_model, download_cocopye_db
 
-    opsys = platform.system()
-    if opsys != "Windows" and opsys != "Linux":
-        print("No supported operating system detected. Exiting.\n")
-        sys.exit(1)
-
     if "uproc" in missing:
+        opsys = platform.system()
         if opsys == "Linux":
             build_uproc_prot(constants.UPROC["SRC"], os.path.join(user_data_dir("cocopye"), "uproc"), config.ARGS.verbose)
 
@@ -148,6 +144,11 @@ def download_dependencies(missing: List[str]) -> None:
                 "external", "uproc_orf_bin",
                 os.path.join(user_data_dir("cocopye"), "uproc", "uproc-orf.exe")
             )
+        else:
+            print("Automatic installation of UProC is currently only supported on Windows and Linux.")
+            print("See http://uproc.gobics.de for more information on how to install UProC on your system.")
+            print("Exiting.\n")
+            sys.exit(1)
 
     if "pfam" in missing:
         download_pfam_db(
