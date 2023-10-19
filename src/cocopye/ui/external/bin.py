@@ -41,7 +41,7 @@ def build_uproc_prot(url: str, install_dir: str, verbose: bool = False) -> None:
         print("- Running configure", end="", flush=True)
         configure = subprocess.Popen(["./configure", "--prefix", install_dir],
                                      cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                     stdout=output, stderr=output)  # TODO: hardcoded
+                                     stdout=output, stderr=output)
         if configure.wait() != 0:
             print("\n\nError while running configure. Rerun the command with '--verbose' for subprocess output.")
             sys.exit(1)
@@ -50,7 +50,7 @@ def build_uproc_prot(url: str, install_dir: str, verbose: bool = False) -> None:
 
         print("- Running make", end="", flush=True)
         make = subprocess.Popen("make", cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                stdout=output, stderr=output)  # TODO: hardcoded
+                                stdout=output, stderr=output)
         if make.wait() != 0:
             print("\n\nError while running make. Rerun the command with '--verbose' for subprocess output.")
             sys.exit(1)
@@ -59,7 +59,7 @@ def build_uproc_prot(url: str, install_dir: str, verbose: bool = False) -> None:
 
         print("- Running make install", end="", flush=True)
         install = subprocess.Popen(["make", "install"], cwd=os.path.join(tmpdir, "uproc-1.2.0"),
-                                   stdout=output, stderr=output)  # TODO: hardcoded
+                                   stdout=output, stderr=output)
         if install.wait() != 0:
             print("\n\nError while running make install. Rerun the command with '--verbose' for subprocess output.")
             sys.exit(1)
@@ -75,5 +75,5 @@ def download_uproc_win(url: str, install_dir: str) -> None:
         print("- Extracting archive", end="", flush=True)
         with zipfile.ZipFile(os.path.join(tmpdir, "uproc.zip"), 'r') as zip_ref:
             zip_ref.extractall(tmpdir)
-        shutil.move(os.path.join(tmpdir, "uproc-1.2.0-win-x86_64"), install_dir)  # TODO: hardcoded
+        shutil.move(os.path.join(tmpdir, "uproc-1.2.0-win-x86_64"), install_dir)
         print("\r- Extracting archive ✓\n")

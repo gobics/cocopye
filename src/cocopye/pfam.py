@@ -3,7 +3,7 @@ import os
 import subprocess
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
-from typing import List, Optional, Tuple, Dict
+from typing import List, Tuple, Dict
 
 import numpy as np
 import numpy.typing as npt
@@ -35,6 +35,7 @@ def count_pfams(
     :param file_extension: File extension of the bin FASTA files. Probably something like .fna or .fasta. Each file in
     the bin folder that has this extension is considered a bin.
     :param num_threads: Number of threads that UProC should use (it is another question if UProC actually uses them)
+    :param print_progress: Print a progress bar to stdout
     :return: A 2-tuple where the first element is a QueryMatrix containing the Pfam counts. Each row represents a bin
     and each column a Pfam. The second element of the tuple is a list of bin names (names of the input FASTA files
     without file extension) in the same order as they appear in the QueryMatrix.
@@ -56,7 +57,12 @@ def count_pfams(
 
     lengths = {}
 
-    for bin_id in tqdm(bins, ncols=0, desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Counting Pfams", disable=not print_progress):
+    for bin_id in tqdm(
+            bins,
+            ncols=0,
+            desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Counting Pfams",
+            disable=not print_progress
+    ):
         for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta"):
             lengths[bin_id] = len(str(record.seq))
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")
@@ -76,7 +82,10 @@ def count_pfams(
     return pfam_counts, sequences, count_ratio
 
 
-def _count_pfams(stdout: _io.BufferedReader, merge: bool = True) -> Tuple[npt.NDArray[np.uint8], List[str], Dict[str, int]]:
+def _count_pfams(
+        stdout: _io.BufferedReader,
+        merge: bool = True
+) -> Tuple[npt.NDArray[np.uint8], List[str], Dict[str, int]]:
     pfams: Dict[str, List[int]] = {}
     sequences = []
 

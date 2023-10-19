@@ -50,7 +50,12 @@ async def ws_endpoint(ws: WebSocket, client_id: int):
             return
 
     log("Starting new task")
-    task = estimate_task.delay(CONFIG, 24 if os.environ["COCOPYE_PFAM24"] == "1" else 28, infolder, CONFIG["server"]["debug"])
+    task = estimate_task.delay(
+        CONFIG,
+        24 if os.environ["COCOPYE_PFAM24"] == "1" else 28,
+        infolder,
+        CONFIG["server"]["debug"]
+    )
 
     if task.state == "PENDING":
         await ws.send_json({"status": "progress", "content": "Waiting for task execution"})
@@ -96,8 +101,9 @@ def run_server():
     os.makedirs(CONFIG["server"]["logdir"], exist_ok=True)
 
     # It seems to be quite difficult to get configuration options into the tasks module when it is called by celery.
-    # Environment variables are probably not the best solution, but at least they work (or they don't; TODO).
+    # Environment variables are probably not the best solution, but at least they work.
     celery_env = os.environ.copy()
+    # ...except when they don't. But this is something we can fix later as it is not that important.
     # celery_env["CELERY_BROKER_URL"] = CONFIG["server"]["celery"]["broker"]
     # celery_env["CELERY_RESULT_BACKEND"] = CONFIG["server"]["celery"]["backend"]
     celery_env["CELERY_TIME_LIMIT"] = str(config.CONFIG["server"]["celery"]["time_limit"])

@@ -179,13 +179,20 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         the k nearest neighbors.
         :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
         marker
+        :param print_progress: Print a progress bar to stdout.
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
         if self._db_mat is None:
             return None
 
-        with ProgressBar(total=self.mat().shape[0], ncols=0, dynamic_ncols=False, desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Calculating estimates", disable=not print_progress) as progress_bar:
+        with ProgressBar(
+                total=self.mat().shape[0],
+                ncols=0,
+                dynamic_ncols=False,
+                desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Calculating estimates",
+                disable=not print_progress
+        ) as progress_bar:
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 

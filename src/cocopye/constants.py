@@ -19,7 +19,11 @@ UPROC = {
     "SRC": "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0.tar.gz",
     "WIN": "http://uproc.gobics.de/downloads/uproc/uproc-1.2.0-win-x86_64.zip"
 }
-"""UProC source/binary download path"""
+"""
+UProC source/binary download path.
+Please note that there are some hardcoded directory names in cocopye.ui.external.bin. You might need to adjust them
+if you change this URLs (for example in the unlikely case that there will be a UProC update).
+"""
 
 UPROC_MODEL = "http://uproc.gobics.de/downloads/models/model.tar.gz"
 """UProC model download path"""

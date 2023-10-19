@@ -10,8 +10,9 @@ app = Celery(
     "tasks",
     backend="redis://localhost",
     broker="redis://localhost",
-    # backend=os.getenv("BACKEND"),     This does not work (crashes on task execution) and I have no idea why.
-    # broker=os.getenv("BROKER"),       TODO
+    # This does not work (crashes on task execution) and I have no idea why.
+    # backend=os.getenv("BACKEND"),
+    # broker=os.getenv("BROKER"),
     broker_connection_retry=False,
     broker_connection_retry_on_startup=True,
     broker_connection_max_retries=10,

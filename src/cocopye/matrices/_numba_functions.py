@@ -74,7 +74,11 @@ def nearest_neighbors_idx_njit_mat(
 
 
 @njit(parallel=True)
-def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.uint8], k: int) -> Tuple[npt.NDArray[np.int64], np.float32]:
+def nearest_neighbors_idx_njit(
+        mat: npt.NDArray[np.uint8],
+        vec: npt.NDArray[np.uint8],
+        k: int
+) -> Tuple[npt.NDArray[np.int64], np.float32]:
     """
     Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
     `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
@@ -89,14 +93,15 @@ def nearest_neighbors_idx_njit(mat: npt.NDArray[np.uint8], vec: npt.NDArray[np.u
     assert vec.ndim == 1, "Vector has to be 1-dimensional"
     assert vec.shape[0] == num_count, "Vector length must be equal to the number of columns of the matrix"
 
-    eq_count = np.zeros(num_refs)
+    eq_counts = np.zeros(num_refs)
     norm_vec = np.sqrt((mat > 0).sum(axis=1))
     for idx in prange(len(mat)):
-        eq_count[idx] = np.sum(np.logical_and(np.logical_and(0 < vec, vec < 255), mat[idx] == vec)) / norm_vec[idx] / np.sqrt((vec > 0).sum())
+        eq_count = np.sum(np.logical_and(np.logical_and(0 < vec, vec < 255), mat[idx] == vec))
+        eq_counts[idx] = eq_count / norm_vec[idx] / np.sqrt((vec > 0).sum())
 
-    inds = np.flip(np.argsort(eq_count))[:k]
+    inds = np.flip(np.argsort(eq_counts))[:k]
 
-    return inds, eq_count[inds].mean()
+    return inds, eq_counts[inds].mean()
 
 
 @njit

@@ -4,7 +4,6 @@ import numpy.typing as npt
 MAX_COUNT = 255
 
 
-# TODO aufräumen
 class Histogram:
     _indx_mat: npt.NDArray[np.int32]
     _n_histogram_bins: int
