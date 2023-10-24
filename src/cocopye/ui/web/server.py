@@ -1,15 +1,16 @@
 import asyncio
+import uuid
 from datetime import datetime
 from importlib import resources
 import os
 import subprocess
+import werkzeug
 
 from Bio import SeqIO
 from fastapi import FastAPI, UploadFile, WebSocket
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import shutil
-import random
 
 from .. import config
 from .tasks import estimate_task
@@ -22,12 +23,12 @@ app = FastAPI()
 
 @app.post("/upload")
 async def upload(file: UploadFile):
-    ws_id = random.randint(0, 100000000)
+    ws_id = str(uuid.uuid4())
     tmpdir = CONFIG["server"]["tmpdir"]
 
-    os.makedirs(os.path.join(tmpdir, str(ws_id)))
+    os.makedirs(os.path.join(tmpdir, ws_id))
 
-    with open(os.path.join(tmpdir, str(ws_id), file.filename + ".fna"), "wb") as outfile:
+    with open(os.path.join(tmpdir, ws_id, werkzeug.utils.secure_filename(file.filename) + ".fna"), "wb") as outfile:
         # Not sure about this one. Maybe we should try to use some kind of non-blocking copy.
         shutil.copyfileobj(file.file, outfile)
 
@@ -35,10 +36,10 @@ async def upload(file: UploadFile):
 
 
 @app.websocket("/ws/{client_id}")
-async def ws_endpoint(ws: WebSocket, client_id: int):
+async def ws_endpoint(ws: WebSocket, client_id: str):
     await ws.accept()
 
-    infolder = os.path.join(CONFIG["server"]["tmpdir"], str(client_id))
+    infolder = os.path.join(CONFIG["server"]["tmpdir"], client_id)
     infile = os.listdir(infolder)[0]
 
     await ws.send_json({"status": "progress", "content": "Checking input file"})

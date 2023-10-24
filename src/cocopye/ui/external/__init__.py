@@ -111,7 +111,11 @@ def download_dependencies(missing: List[str]) -> None:
     if "uproc" in missing:
         opsys = platform.system()
         if opsys == "Linux":
-            build_uproc_prot(constants.UPROC["SRC"], os.path.join(user_data_dir("cocopye"), "uproc"), config.ARGS.verbose)
+            build_uproc_prot(
+                constants.UPROC["SRC"],
+                os.path.join(user_data_dir("cocopye"), "uproc"),
+                config.ARGS.verbose
+            )
 
             change_config(
                 "external", "uproc_prot_bin",
