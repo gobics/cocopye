@@ -49,7 +49,7 @@ def main() -> None:
                            + ["run", "-i", os.path.join(config.CONFIG["external"]["cocopye_db"], "testdata"),
                               "-o", os.path.join(tmpdir, "tempfile.csv")])
 
-                print("Starting testrun.\n\033[37m(" + " ".join(command) + ")\033[0m")
+                print("Starting testrun.\n\033[37m(" + " ".join(command) + ")\033[0m\n")
                 print("=======================================================================\n")
                 cocopye_process = subprocess.Popen(command)
                 cocopye_process.wait()

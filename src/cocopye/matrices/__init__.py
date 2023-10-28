@@ -3,17 +3,20 @@ This module contains several matrix classes that are relevant for our work. They
 
 **Matrix** is a generic class and the ancestor of the other matrix classes. You probably don't need to use it directly.
 
-**DatabaseMatrix** and **QueryMatrix** are quite similar in the sense that they both represent Pfam or Kmer count
+**DatabaseMatrix** and **QueryMatrix** are quite similar in the sense that they both represent Pfam count
 matrices. However, for better differentiation I decided to split them up into two classes.
 
 A **DatabaseMatrix**, as the name implies, contains the count values of our database sequences, while a
 **QueryMatrix** contains the counts of the input bins (the one we want to determine completeness and contamination for).
+
+A DatabaseMatrix can be transformed into a **FeatureMatrix** to get completeness and contamination estimates from the
+neural network.
 """
 from __future__ import annotations
 
 import pickle
 from datetime import datetime
-from typing import TypeVar, Generic, cast, Tuple, Optional
+from typing import TypeVar, Generic, cast, Tuple, Optional, List
 import numpy as np
 import numpy.typing as npt
 from numba_progress import ProgressBar
@@ -29,10 +32,15 @@ class Matrix(Generic[T]):
     """
     A generic class for a 2-dimensional matrix. It is intended as an ancestor for the other matrix classes in this
     module.
+
+    Please note that even though we are using a completely generic parameter, the class must be used with numpy arrays.
     """
     _mat: T
 
     def __init__(self, mat: T):
+        """
+        :param mat: Some kind of two-dimensional numpy matrix
+        """
         cast(npt.NDArray[np.generic], mat)
         assert mat.ndim == 2, "Matrix has to be 2-dimensional"  # type: ignore
 
@@ -46,8 +54,10 @@ class Matrix(Generic[T]):
 
     def save_to_file(self, filename: str) -> None:
         """
-        Save the matrix to a file. If the filename has a .npy extension it is saved in binary format, otherwise as csv.
-        This is just a convenience function. If it doesn't fit to your needs, just use np.save or np.savetxt.
+        Save the matrix to a file. If the filename has a .npy extension it is saved in binary format. If the extension
+        is .npz it uses some form of compression. Otherwise the matrix is stored as csv.
+
+        This is just a convenience function. If it doesn't suit your needs, just use np.save or np.savetxt.
         """
         file_format = filename.split(".")[-1]
 
@@ -64,26 +74,32 @@ class Matrix(Generic[T]):
 
 class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
-    Description
+    A two-dimensional matrix containing Pfam counts. It can optionally contain metadata about the underlying sequences.
     """
     _metadata: Optional[pd.DataFrame] = None
 
     def __init__(self, mat: npt.NDArray[np.uint8], metadata: Optional[pd.DataFrame] = None):
         """
-        :param mat: 2-dimensional numpy matrix. Rows are expected to represent sequences/bins while columns are Pfams or
-        kmers.
+        :param mat: 2-dimensional numpy matrix. Each row contains the counts of a reference sequences while each column
+        represents a Pfam.
+        :param metadata: A Pandas dataframe containing metadata for each reference sequence. It is expected that the
+        same row indices of the matrix and metadata represent the same sequence.
         """
         super().__init__(mat)
         self._metadata = metadata
 
     def metadata(self) -> Optional[pd.DataFrame]:
+        """
+        :return: The dataframe with metadata (in case you need direct access to it). This will return None if the
+        DatabaseMatrix contains no metadata.
+        """
         return self._metadata
 
     def nearest_neighbors(self, vec: npt.NDArray[np.uint8], k: int) -> DatabaseMatrix:
         """
         Returns the k nearest neighbors of a vector in the database matrix.
         :param vec: The count vector you want to find neighbors for
-        :param k: Well, it's the k of k nearest neighbors
+        :param k: Number of nearest neighbors to return
         :return: Database matrix where each row is one of the nearest neighbors.
         """
         return DatabaseMatrix(self._mat[self.nearest_neighbors_idx(vec, k), :])
@@ -91,16 +107,25 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
     def nearest_neighbors_idx(self, vec: npt.NDArray[np.uint8], k: int) -> npt.NDArray[np.int64]:
         """
         Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
-        `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
+        `nearest_neighbors`  function, but may also be useful in other situations where one needs only the indices and
         not the actual neighbors.
 
-        Parameters are the same as of `nearest_neighbors`.
+        :param vec: The count vector you want to find neighbors for
+        :param k: Number of nearest neighbors to return
 
         :return: A numpy array containing the indices of the nearest neighbors.
         """
         return nearest_neighbors_idx_njit(self._mat, vec, k)[0]
 
     def universal_markers(self, threshold: float = 0.95) -> npt.NDArray[np.uint32]:
+        """
+        Calculate (possible) universal markers based on the given count matrix.
+
+        :param threshold: Fraction of reference sequences where a marker has to occur exatly once in order to be
+        considered universal
+
+        :return: The (column) indices of possible universal markers
+        """
         return np.where(np.count_nonzero(self._mat == 1, axis=0) / self._mat.shape[0] >= threshold)[0]
 
     def estimate(
@@ -108,26 +133,28 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
             vec: npt.NDArray[np.uint8],
             k: int,
             frac_eq: float = 0.9,
-            knn: Optional[npt.NDArray[np.uint64]] = None
+            knn_inds: Optional[npt.NDArray[np.uint64]] = None
     ) -> Tuple[float, float, int]:
         """
         Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
         neighbors.
         :param vec: Input vector
-        :param k: k (like in k nearest neighbors)
-        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
+        :param k: Number of nearest neighbors to consider. This parameter is ignored if knn_inds is provided.
+        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam as a
         marker
-        :param knn: If provided, this is used as the nearest neighbors (expects a 1D numpy array with database indeices)
+        :param knn_inds: If provided, this is used as the nearest neighbors (expects a 1D numpy array with database
+        indices). If this is None, the function will determine the nearest neighbors itself.
         :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
-        (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
-        intended for evaluation purposes.
+        (both between 0 and 1) and the third one is the number of markers that were used. (The last value is mainly
+        intended for evaluation purposes.)
         """
-        return estimate_njit(self.mat(), vec, k, frac_eq, knn)
+        return estimate_njit(self.mat(), vec, k, frac_eq, knn_inds)
 
 
 class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
     """
-    Description
+    A two-dimensional matrix containing Pfam counts. Contrary to the DatabaseMatrix this is intended to represent a set
+    of CoCoPyE input bins/sequences.
     """
     _db_mat: Optional[npt.NDArray[np.uint8]] = None
     _db_metadata: Optional[pd.DataFrame] = None
@@ -137,12 +164,19 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
     def __init__(self, mat: npt.NDArray[np.uint8]):
         """
-        :param mat: 2-dimensional numpy matrix. Rows are expected to represent sequences/bins while columns are Pfams or
-        kmers.
+        :param mat: 2-dimensional numpy matrix. Each row contains the counts of an input bin/sequence while each column
+        represents a Pfam.
         """
         super().__init__(mat)
 
     def with_database(self, db: DatabaseMatrix, k: Optional[int] = None) -> QueryMatrix:
+        """
+        Add a DatabaseMatrix. This is required for almost all other functions of this class.
+
+        :param db: DatabaseMatrix to be added.
+        :param k: If provided, the function calculates and stores the k nearest neighbors for each query sequence. This
+        is required for functions like estimates or taxonomy.
+        """
         self._db_mat = db.mat()
         self._db_metadata = db.metadata()
 
@@ -153,15 +187,38 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         return self
 
     def knn(self) -> Optional[Tuple[int, npt.NDArray[np.uint64]]]:
+        """
+        Return the previously calculated nearest neighbors. This requires a database matrix with k not None.
+
+        :return: A Tuple containing the number of nearest neighbors as well as their indices. Returns None if this
+        QueryMatrix doesn't contain any information about nearest neighbors.
+        """
         if self._k is None:
             return None
 
         return self._k, self._knn_inds
 
     def knn_scores(self) -> Optional[npt.NDArray[np.float32]]:
+        """
+        This requires a database matrix with k not None.
+
+        :return: Similarity scores for each query bin to its nearest neighbors (value between 0 and 1; a higher value
+        indicates a higher similarity). Each row represents a bin, each column a neighbor.
+        """
+        if self._k is None:
+            return None
+
         return self._knn_scores
 
     def preestimates(self, markers: npt.NDArray[np.uint32]) -> npt.NDArray[np.float32]:
+        """
+        Calculate preestimates based on universal markers.
+
+        :param markers: An array containing (column) indices that will be used as markers
+
+        :return: A two-dimensional numpy array. Each row contains two values which are (in this order) the completeness
+        and the contamination estimate for the respective query bin.
+        """
         submatrix = self._mat[:, markers]
 
         completeness = np.sum(np.clip(submatrix, 0, 1), axis=1) / markers.shape[0]
@@ -177,9 +234,12 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
         """
         Calculate a completeness and contamination estimate for all rows in the QueryMatrix based on common markers in
         the k nearest neighbors.
-        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
-        marker
+
+        This requires a database matrix with k not None.
+
+        :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam as a marker
         :param print_progress: Print a progress bar to stdout.
+
         :return: A 2-dimensional numpy array. For each row in the QueryMatrix there is a row with two floats, where the
         first element ist the completeness and the second one the contamination estimate.
         """
@@ -196,7 +256,13 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 
-    def taxonomy(self):
+    def taxonomy(self) -> Optional[List[str]]:
+        """
+        Use a consensus of the nearest neighbors for a taxonomy estimate. This will return the most specific taxonomic
+        rank that is the same for all neighbors.
+
+        :return: A list of strings representing taxonomy estimates, one for each query bin.
+        """
         if self._db_metadata is None:
             return None
 
@@ -245,10 +311,28 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
 
 class FeatureMatrix(Matrix[npt.NDArray[np.double]]):
+    """
+    This class contains the features that are extracted from a QueryMatrix. They can be used to get completeness and
+    contamination estimates of some machine learning model (in our case most likely a neural network).
+    """
     def __init__(self, mat: npt.NDArray[np.double]):
+        """
+        You probably don't need to call this constructor directly. Instead you might want to call
+        QueryMatrix.into_feature_mat.
+
+        :param mat: Numpy matrix containing features
+        """
         super().__init__(mat)
 
-    def ml_estimates(self, model_file: str):
+    def ml_estimates(self, model_file: str) -> npt.NDArray[np.float32]:
+        """
+        Calculate completeness or contamination estimates based on some machine learning model. (If you want both
+        completeness and contamination, you have to call this function twice.)
+
+        :param model_file: An sklearn .pickle file contaning the model that should be used.
+
+        :return: An array contaning the predictions, one value for each query bin.
+        """
         mlp = pickle.load(open(model_file, "rb"))
         return mlp.predict(self._mat)
 
@@ -257,8 +341,11 @@ def load_u8mat_from_file(filename: str) -> npt.NDArray[np.uint8]:
     """
     This is just a convenience function to load a numpy matrix from a file. If it doesn't suit your requirements, just
     use numpy.load or numpy.loadtxt directly.
+
     :param filename: Filename of the matrix file. If the extension is .npy it is assumed that the content is in binary
-    format, otherwise it should be csv.
+    format. If it is .npz the file will be treated as compressed binary format contaning exactly one matrix. Otherwise
+    the file will be read as csv.
+
     :return: The loaded matrix as a numpy array
     """
     file_format = filename.split(".")[-1]

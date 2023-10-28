@@ -1,3 +1,8 @@
+"""
+This module contains several numba functions that are called by functions in the parent module. In fact, these functions
+mostly do the actual work while the matrix classes are just wrappers around them.
+"""
+
 from numba import njit, prange
 import numpy as np
 import numpy.typing as npt
@@ -24,19 +29,6 @@ def estimate_njit(
         frac_eq: float = 0.9,
         knn_inds: Optional[npt.NDArray[np.uint64]] = None
 ) -> Tuple[float, float, int]:
-    """
-    Calculate an estimate for completeness and contamination for a vector based on common markers in the k nearest
-    neighbors.
-    :param mat: Database matrix that will be used for the nearest neighbors.
-    :param vec: Input vector
-    :param k: k (like in k nearest neighbors). This parameter is ignored if knn_inds is provided.
-    :param frac_eq: Fraction of similar counts within the nearest neighbors required to consider a Pfam/kmer as a
-    marker
-    :param knn_inds: If provided, this is used as the k nearest neighbors (1D-array containing indices of mat).
-    :return: A 3-tuple: First element is the completeness estimate, the second is the contamiation estimate
-    (both between 0 and 1) and the third one is the number of markers that were used. This last value is mainly
-    intended for evaluation purposes.
-    """
     if knn_inds is None:
         knn_mat_idx = nearest_neighbors_idx_njit(mat, vec, k)[0]
         knn_mat = mat[knn_mat_idx, :]
@@ -79,15 +71,6 @@ def nearest_neighbors_idx_njit(
         vec: npt.NDArray[np.uint8],
         k: int
 ) -> Tuple[npt.NDArray[np.int64], np.float32]:
-    """
-    Returns the row indices of the k nearest neighbors of a vector in the databse matrix. This is mainly used by the
-    `nearest_neighbors`  function, but may also be useful in other situation where one needs only the indices and
-    not the actual neighbors.
-
-    Parameters are the same as of `nearest_neighbors`.
-
-    :return: A numpy array containing the indices of the nearest neighbors.
-    """
     num_refs, num_count = mat.shape
 
     assert vec.ndim == 1, "Vector has to be 1-dimensional"

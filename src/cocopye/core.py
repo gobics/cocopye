@@ -114,8 +114,8 @@ def core(cocopye_db: str,
     estimates = query_mat.estimates(print_progress=print_progress)
 
     log("Calculating ML estimates", print_progress)
-    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP)
-    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT)
+    feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP[int(pfam_version)])
+    feature_mat_cont = query_mat.into_feature_mat(estimates, constants.RESOLUTION_CONT[int(pfam_version)])
 
     ml_estimates_comp = feature_mat_comp.ml_estimates(
         os.path.join(cocopye_db, pfam_version, "model_comp.pickle")).clip(0, 1)

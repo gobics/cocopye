@@ -3,9 +3,9 @@
 K = 4
 """Number of nearest neighbors"""
 
-RESOLUTION_COMP = 10
+RESOLUTION_COMP = {24: 8, 28: 6}
 """Histogram resolution for completeness"""
-RESOLUTION_CONT = 10
+RESOLUTION_CONT = {24: 7, 28: 12}
 """Histogram resolution for contamination"""
 
 TRANSITION_1_2_MIN_COMP = 0.2
