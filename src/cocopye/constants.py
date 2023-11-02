@@ -2,6 +2,8 @@
 
 K = 4
 """Number of nearest neighbors"""
+FRAC_EQ = 1.0
+"""Fraction of counts that have to be the same in all neighbors for a Pfam to be considered as a marker"""
 
 RESOLUTION_COMP = {24: 8, 28: 6}
 """Histogram resolution for completeness"""

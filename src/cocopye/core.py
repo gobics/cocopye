@@ -111,7 +111,7 @@ def core(cocopye_db: str,
     preestimates_arc = query_mat.preestimates(universal_arc)
     preestimates_bac = query_mat.preestimates(universal_bac)
 
-    estimates = query_mat.estimates(print_progress=print_progress)
+    estimates = query_mat.estimates(print_progress=print_progress, frac_eq=constants.FRAC_EQ)
 
     log("Calculating ML estimates", print_progress)
     feature_mat_comp = query_mat.into_feature_mat(estimates, constants.RESOLUTION_COMP[int(pfam_version)])

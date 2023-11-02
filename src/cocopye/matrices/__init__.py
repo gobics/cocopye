@@ -132,7 +132,7 @@ class DatabaseMatrix(Matrix[npt.NDArray[np.uint8]]):
             self,
             vec: npt.NDArray[np.uint8],
             k: int,
-            frac_eq: float = 0.9,
+            frac_eq: float = 1.0,
             knn_inds: Optional[npt.NDArray[np.uint64]] = None
     ) -> Tuple[float, float, int]:
         """
@@ -228,7 +228,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
 
     def estimates(
             self,
-            frac_eq: float = 0.9,
+            frac_eq: float = 1.0,
             print_progress: bool = True
     ) -> Optional[npt.NDArray[np.float32]]:
         """

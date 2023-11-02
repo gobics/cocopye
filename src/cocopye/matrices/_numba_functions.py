@@ -26,7 +26,7 @@ def estimate_njit(
         mat: npt.NDArray[np.uint8],
         vec: npt.NDArray[np.uint8],
         k: int,
-        frac_eq: float = 0.9,
+        frac_eq: float = 1.0,
         knn_inds: Optional[npt.NDArray[np.uint64]] = None
 ) -> Tuple[float, float, int]:
     if knn_inds is None:
