@@ -1,14 +1,22 @@
 import numpy as np
 import numpy.typing as npt
 
-MAX_COUNT = 255
+_MAX_COUNT = 255
 
 
 class Histogram:
+    """
+    A Histogram class that is used for the transformation of a `cocopye.matrices.QueryMatrix` into a
+    `cocopye.matrices.FeatureMatrix`.
+    """
     _indx_mat: npt.NDArray[np.int32]
     _n_histogram_bins: int
 
     def __init__(self, resolution: int):
+        """
+        :param resolution: Histogram resolution. A higher value leads to more histogram bins and therefore a larger
+        feature vector.
+        """
         self._prepare_histogram(resolution)
 
     def _prepare_histogram(self, resolution: int) -> None:
@@ -25,10 +33,18 @@ class Histogram:
             self, in_vec: npt.NDArray[np.uint8],
             neighbor_vec: npt.NDArray[np.uint8]
     ) -> npt.NDArray[np.int64]:
+        """
+        Calculate the bins for two vectors (usually Pfam counts of a query and a neighbor).
+
+        :param in_vec: first (query) vector
+        :param neighbor_vec: second (neighbor) vector
+
+        :return: Histogram bins as numpy array
+        """
         # clip to maximum count (255 for uint8)!
         # use both count vectors as indices
         # indvec contains all the ratio possitions for both count vect that would be in edge_vec
-        ind_vec = self._indx_mat[np.clip(in_vec, 0, MAX_COUNT), np.clip(neighbor_vec, 0, MAX_COUNT)]
+        ind_vec = self._indx_mat[np.clip(in_vec, 0, _MAX_COUNT), np.clip(neighbor_vec, 0, _MAX_COUNT)]
         # histogram counts for all bins
         x_new_vec = np.bincount(ind_vec[ind_vec != -1], minlength=self._n_histogram_bins)
         return x_new_vec
@@ -59,17 +75,17 @@ def _calc_cr_hist_edges(resolution: int) -> npt.NDArray[np.float32]:
 
 def _calc_index_matrix(edge_vec: npt.NDArray[np.float32], n_histogram_bins: int) -> npt.NDArray[np.int32]:
     # using 2D index table (256 x 256)!
-    indx_mat = np.zeros((MAX_COUNT + 1, MAX_COUNT + 1), dtype=np.int32)
+    indx_mat = np.zeros((_MAX_COUNT + 1, _MAX_COUNT + 1), dtype=np.int32)
     # contains all ratios of 1-255 to 1-255
     # 1/1,  1/2,    1/3     ....    1/255
     # 2/1,  2/2,    2/3     ....    2/255
     # ...
     # 255/1,255/2,  255/3   ....  255/255
-    cr_list = [i / j for i in range(1, MAX_COUNT + 1)
-               for j in range(1, MAX_COUNT + 1)]
+    cr_list = [i / j for i in range(1, _MAX_COUNT + 1)
+               for j in range(1, _MAX_COUNT + 1)]
     # list of i and j indicies that belong to the same positions in ratios in cr_list
-    cr_inds = [(i, j) for i in range(1, MAX_COUNT + 1)
-               for j in range(1, MAX_COUNT + 1)]
+    cr_inds = [(i, j) for i in range(1, _MAX_COUNT + 1)
+               for j in range(1, _MAX_COUNT + 1)]
     # tell us where in edge_vec to entries from cr_list need to go
     ind_vec = np.searchsorted(edge_vec, cr_list)
     for ind, val in enumerate(cr_list):

@@ -31,14 +31,16 @@ def count_pfams(
     :param prot_bin: Path to uproc-prot binary
     :param pfam_dir: Path to the UProC Pfam database directory
     :param model_dir: Path to UProC model directory
-    :param bin_folder: Bin folder
-    :param file_extension: File extension of the bin FASTA files. Probably something like .fna or .fasta. Each file in
+    :param bin_folder: Folder containing input bins in FASTA format
+    :param file_extension: File extension of the input FASTA files. Probably something like .fna or .fasta. Each file in
     the bin folder that has this extension is considered a bin.
-    :param num_threads: Number of threads that UProC should use (it is another question if UProC actually uses them)
+    :param num_threads: Number of threads that UProC should use. It is possible (and likely) that UProC ignores this
+    parameter, but you can try.
     :param print_progress: Print a progress bar to stdout
-    :return: A 2-tuple where the first element is a QueryMatrix containing the Pfam counts. Each row represents a bin
-    and each column a Pfam. The second element of the tuple is a list of bin names (names of the input FASTA files
-    without file extension) in the same order as they appear in the QueryMatrix.
+    :return: A 3-tuple. The first element is a QueryMatrix containing the Pfam counts. Each row represents a bin
+    and each column a Pfam. The second element is a list of bin names (names of the input FASTA files without file
+    extension) in the same order as they appear in the QueryMatrix. The third element is a list of count-ratios of the
+    input bins (number of pfams divided by bin size).
     """
     process_orf = subprocess.Popen(
         orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True

@@ -11,10 +11,20 @@ import Header from "../components/Header.astro";
     <meta name="generator" content={Astro.generator} />
     <title>CoCoPyE</title>
   </head>
-  <body class="min-h-screen">
+  <body class="flex flex-col" style="background-color: #c0e9ff; min-height: 100vh; margin: 0;">
     <Header />
-    <main>
+
+    <main style="flex: 1 0 auto">
       <slot />
     </main>
+
+    <footer style="flex-shrink: 0" class="mt-2 w-full flex flex-col items-center opacity-50">
+      <hr class="h-px w-3/4 mb-2 bg-gray-500 border-0">
+      <div class="mb-2">
+        <a href="#" class="mr-12 underline">Imprint</a>
+        <a href="#" class="underline">Privacy Policy</a>
+      </div>
+    </footer>
+
   </body>
 </html>

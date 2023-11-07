@@ -60,9 +60,9 @@ class Result:
 
     def to_web(self) -> Dict[str, str]:
         return {
-            "completeness": str(self.completeness()),
-            "contamination": str(self.contamination()),
-            "stage": str(self.stage),
+            "completeness": "{:.2f}%".format(self.completeness() * 100),
+            "contamination": "{:.2f}%".format(self.contamination() * 100),
+            "stage": ["Low", "Medium", "High"][self.stage-1],
             "taxonomy": self.taxonomy
         }
 
@@ -186,5 +186,8 @@ def core(cocopye_db: str,
 
 
 def log(message: str, show: bool = True):
+    """
+    Wrapper around the print function for logging purposes.
+    """
     if show:
         print("\033[0;37m[" + str(datetime.now()) + "]\033[0m " + message)

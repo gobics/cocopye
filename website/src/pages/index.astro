@@ -1,11 +1,12 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+import { Icon } from 'astro-icon'
 ---
 
 <MainLayout>
-  <div class="grid md:grid-cols-2 grid-cols-1 gap-6 m-2 mt-8">
+  <div class="grid 2xl:grid-cols-2 grid-cols-1 gap-6 m-2 mt-8">
     <div class="flex flex-col items-center">
-      <div class="w-3/4 text-base">
+      <div class="md:w-3/4 m-2 text-base text-justify">
         Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
         provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
         delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
@@ -16,25 +17,63 @@ import MainLayout from "../layouts/MainLayout.astro";
         ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
         aliquam tempora iusto deleniti sed.
       </div>
+      <div class="flex flex-col md:flex-row mt-8 md:mt-16">
+        <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200"><Icon name="fa:book" style="width: 20px; height: 20px;" />Getting started</button></div>
+        <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200"><Icon name="fa:github" style="width: 20px; height: 20px;" />Source</button></div>
+        <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200"><Icon name="bytesize:mail" style="width: 20px; height: 20px;" />Contact</button></div>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="card mt-12 md:w-3/4 shadow-xl bg-base-100 border-solid border-neutral-400 border-0">
+          <div class="card-body">
+            <h2 class="card-title">Citing CoCoPyE</h2>
+            Niklas Birth, Nicolina Leppich, hier noch mehr Autoren eintragen. 2023.
+            "CoCoPyE: feature engineering for learning and prediction of genome quality indices".
+            Some great journal.
+          </div>
+        </div>
+      </div>
     </div>
   
     <div class="flex flex-col items-center">
-      <div class="card shadow-xl card-bordered border-2">
+      <div class="card shadow-xl card-bordered border-2 bg-white border-solid h-full">
         <div class="card-body flex flex-col items-center">
           <h2 class="card-title justify-center text-2xl">Demo</h2>
           <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
-          <div class="form-control w-full max-w-xs flex flex-col items-center">
+          <div class="form-control w-full flex flex-col items-center">
             <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
-            <button id="upload-btn" class="btn btn-sm m-2 mt-4 w-48">Upload</button>
+            <div class="text-xs text-gray-600">Upload limit: 50MB</div>
+            <button id="upload-btn" class="btn btn-outline btn-sm m-2 mt-4 w-48 bg-gray-200 border-gray-400">Upload</button>
 
-            <div class="flex flex-row items-center h-8 mt-4 mb-2" id="status"></div>
+            <div class="flex flex-row items-center h-8 mt-2 mb-2" id="status"></div>
 
-            <div class="p-2 m-2 mt-4 border-solid border-2 border-gray-600">
+            <hr class="h-px w-full mb-2 bg-gray-500 border-0">
+
+            <!--<h3 class="text-center text-lg font-bold">Results</h3>-->
+
+            <div class="p-2 m-2 mt-4 w-3/4 border-solid border-2 border-gray-600 opacity-30" id="results">
+              <h3 class="text-center text-lg font-bold">Results</h3>
+
               <table class="table">
-                <tr><td>Completeness</td><td id="completeness"><i>None</i></td></tr>
-                <tr><td>Contamination</td><td id="contamination"><i>None</i></td></tr>
-                <tr><td>Stage</td><td id="stage"><i>None</i></td></tr>
-                <tr><td>Taxonomy prediction</td><td id="taxonomy"><i>None</i></td></tr>
+                <tr><td>Completeness estimate</td><td id="completeness"><i>-</i></td></tr>
+                <tr><td>Contamination estimate</td><td id="contamination"><i>-</i></td></tr>
+                <tr>
+                  <td class="flex flex-row items-center">
+                    <div>Confidence Level</div>
+                    <div class="ml-2 tooltip tooltip-top max-sm:hidden" data-tip="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur">
+                      <Icon name="simple-line-icons:question" style="width: 18px; height: 18px;" />
+                    </div>
+                  </td>
+                  <td id="stage"><i>-</i></td>
+                </tr>
+                <tr>
+                  <td class="flex flex-row items-center">
+                    <div>Taxonomy prediction</div>
+                    <div class="ml-2 tooltip tooltip-top max-sm:hidden" data-tip="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur">
+                      <Icon name="simple-line-icons:question" style="width: 18px; height: 18px;" />
+                    </div>
+                  </td>
+                  <td id="taxonomy"><i>-</i></td>
+                </tr>
               </table>
             </div>
           </div>
@@ -43,14 +82,9 @@ import MainLayout from "../layouts/MainLayout.astro";
     </div>
   </div>
 
-  <!--<div class="mt-16 text-center">
-    <a href="/docs/gettingstarted" class="btn btn-neutral">Get started</a>
-  </div>-->
 
   <script>
     function update_status(message, state) {
-      console.log(state)
-      console.log(message)
       let status = document.getElementById("status");
       status.innerHTML = "";
 
@@ -71,6 +105,11 @@ import MainLayout from "../layouts/MainLayout.astro";
         div.classList.add("text-green-800");
         div.appendChild(document.createTextNode("Finished."));
         status.appendChild(div);
+
+        let results = document.getElementById("results");
+        results.classList.remove("opacity-30");
+        results.classList.add("opacity-100");
+        document.getElementById("upload-btn").removeAttribute("disabled");
       }
 
       if(state == "error") {
@@ -87,7 +126,11 @@ import MainLayout from "../layouts/MainLayout.astro";
         return;
       }
       else {
-        update_status("Uploading file", "progress")
+        update_status("Uploading file", "progress");
+        let results = document.getElementById("results");
+        results.classList.remove("opacity-100");
+        results.classList.add("opacity-30");
+        document.getElementById("upload-btn").setAttribute("disabled", "true");
       }
 
       let formData = new FormData();
