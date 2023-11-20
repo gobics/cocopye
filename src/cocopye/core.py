@@ -138,14 +138,14 @@ def core(cocopye_db: str,
             completeness.append(preestimates_arc[idx, 0])
             contamination.append(preestimates_arc[idx, 1])
 
-        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
+        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP or contamination[idx] < constants.TRANSITION_1_2_MIN_CONT:
             continue
 
         stage[idx] = 2
         completeness[idx] = estimates[idx, 0]
         contamination[idx] = estimates[idx, 1]
 
-        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or completeness[idx] < 2 * contamination[idx]:
+        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or contamination[idx] < constants.TRANSITION_2_3_MIN_CONT:
             continue
 
         stage[idx] = 3
