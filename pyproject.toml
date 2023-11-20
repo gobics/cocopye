@@ -39,7 +39,8 @@ web = [
     "fastapi~=0.99.1",
     "python-multipart~=0.0.6",
     "websockets~=11.0.3",
-    "werkzeug"
+    "werkzeug",
+    "Jinja2~=3.1.2"
 ]
 
 [project.scripts]

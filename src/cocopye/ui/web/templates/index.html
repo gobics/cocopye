@@ -43,9 +43,11 @@
           <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200">
               <div style="content: url('icons/Font-Awesome/github.svg'); width: 20px; height: 20px;"></div>SOURCE
             </button></div>
-          <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200">
+          {% if contact != "" %}
+          <div class="flex flex-row items-center"><a href="{{ contact }}" class="btn btn-outline m-2 w-48 bg-gray-200">
               <div style="content: url('icons/bytesize-icons/mail.svg'); width: 20px; height: 20px;"></div>CONTACT
-            </button></div>
+            </a></div>
+          {% endif %}
         </div>
         <div class="flex flex-col items-center">
           <div class="card mt-12 md:w-3/4 shadow-xl bg-base-100 border-solid border-neutral-400 border-0">
@@ -66,7 +68,7 @@
             <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
             <div class="form-control w-full flex flex-col items-center">
               <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
-              <div class="text-xs text-gray-600">Upload limit: 50MB</div>
+              <div class="text-xs text-gray-600">Upload limit: {{ limit }}</div>
               <button id="upload-btn"
                 class="btn btn-outline btn-sm m-2 mt-4 w-48 bg-gray-200 border-gray-400">UPLOAD</button>
 
@@ -117,13 +119,20 @@
     </div>
   </main>
 
+  {% if imprint != "" or privacy != "" %}
   <footer style="flex-shrink: 0" class="mt-2 w-full flex flex-col items-center opacity-50">
     <hr class="h-px w-3/4 mb-2 bg-gray-500 border-0">
     <div class="mb-2">
-      <a href="#" class="mr-12 underline">Imprint</a>
-      <a href="#" class="underline">Privacy Policy</a>
+      {% if imprint != "" %}
+        <a href="{{ imprint }}" class="mr-12 underline">Imprint</a>
+      {% endif %}
+
+      {% if privacy != "" %}
+        <a href="{{ privacy }}" class="underline">Privacy Policy</a>
+      {% endif %}
     </div>
   </footer>
+  {% endif %}
 
   <script src="script.js"></script>
 </body>

@@ -7,8 +7,10 @@ import subprocess
 import werkzeug
 
 from Bio import SeqIO
-from fastapi import FastAPI, UploadFile, WebSocket
+from fastapi import FastAPI, UploadFile, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from jinja2 import Environment, PackageLoader, select_autoescape
 import uvicorn
 import shutil
 
@@ -19,6 +21,21 @@ from ..config import parse_config
 CONFIG = parse_config()[1]
 
 app = FastAPI()
+jinja_env = Environment(
+    loader=PackageLoader("cocopye.ui.web"),
+    autoescape=select_autoescape()
+)
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return jinja_env.get_template("index.html").render(
+        request=request,
+        contact=CONFIG["server"]["site_variables"]["contact"],
+        limit=CONFIG["server"]["site_variables"]["upload_limit"],
+        imprint=CONFIG["server"]["site_variables"]["imprint"],
+        privacy=CONFIG["server"]["site_variables"]["privacy_policy"]
+    )
 
 
 @app.post("/upload")

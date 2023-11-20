@@ -43,6 +43,17 @@ workers = 4
 # Enable/Disable debug mode. Increases the information written to stdout if activated.
 debug = false
 
+[server.site_variables]
+# Contact address. This can be a mailto or a normal URL (and probably some other things, too; basically everything you
+# can put in the href attribute of a link). Use an empty string to hide the button.
+contact = "mailto:email@example.com"
+# Upload limit for FASTA files. Please note that this is just for displaying the value on the website. It is not
+# enforced by the server.
+upload_limit = "50MB"
+# URL to imprint. Use an empty string to hide link in the footer.
+imprint = ""
+# URL to a privacy policy. Use an empty string to hide the link in the footer.
+privacy_policy = ""
 
 # These are settings for the Celery queue used by the webserver.
 [server.celery]
