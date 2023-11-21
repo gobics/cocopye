@@ -13,9 +13,11 @@ from .pfam import count_pfams
 class Result:
     bin_id: str
     stage: int
+    method: str
     count_ratio: float
     knn_scores: float
     taxonomy: str
+    taxonomy_level: str
     notes: str
 
     comp_1_bac: float
@@ -32,7 +34,7 @@ class Result:
 
     def completeness(self):
         if self.stage == 1:
-            return max(self.comp_1_bac, self.comp_1_arc)
+            return -1
         elif self.stage == 2:
             return self.comp_2
         else:
@@ -40,7 +42,7 @@ class Result:
 
     def contamination(self) -> float:
         if self.stage == 1:
-            return self.cont_1_bac if self.comp_1_bac > self.comp_1_arc else self.cont_1_arc
+            return -1
         elif self.stage == 2:
             return self.cont_2
         else:
@@ -48,12 +50,13 @@ class Result:
 
     def to_csv(self, verbosity: str = "standard") -> str:
         output_lists = {
-            "standard": [self.bin_id, self.completeness(), self.contamination(), self.stage, self.taxonomy, self.notes],
-            "extended": [self.bin_id, self.completeness(), self.contamination(), self.stage, self.num_markers_2,
-                         self.count_ratio, self.knn_scores, self.taxonomy, self.notes],
-            "everything": [self.bin_id, self.stage, self.comp_1_arc, self.cont_1_arc, self.comp_1_bac, self.cont_1_bac,
+            "standard": [self.bin_id, "{:.4f}".format(self.completeness()), "{:.4f}".format(self.contamination()), self.method, self.taxonomy,
+                         self.taxonomy_level, self.notes],
+            "extended": [self.bin_id, "{:.4f}".format(self.completeness()), "{:.4f}".format(self.contamination()), self.stage, self.method, self.num_markers_2,
+                         self.count_ratio, self.knn_scores, self.taxonomy, self.taxonomy_level, self.notes],
+            "full": [self.bin_id, self.stage, self.method, self.comp_1_arc, self.cont_1_arc, self.comp_1_bac, self.cont_1_bac,
                            self.comp_2, self.cont_2, self.num_markers_2, self.comp_3, self.cont_3, self.count_ratio,
-                           self.knn_scores, self.taxonomy, self.notes]
+                           self.knn_scores, self.taxonomy, self.taxonomy_level, self.notes]
         }
 
         return ",".join([str(item) for item in output_lists[verbosity]])
@@ -62,8 +65,8 @@ class Result:
         return {
             "completeness": "{:.2f}%".format(self.completeness() * 100),
             "contamination": "{:.2f}%".format(self.contamination() * 100),
-            "stage": ["Low", "Medium", "High"][self.stage-1],
-            "taxonomy": self.taxonomy
+            "stage": self.stage,
+            "taxonomy": self.taxonomy + " (" + self.taxonomy_level + ")",
         }
 
 
@@ -138,14 +141,14 @@ def core(cocopye_db: str,
             completeness.append(preestimates_arc[idx, 0])
             contamination.append(preestimates_arc[idx, 1])
 
-        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP or contamination[idx] < constants.TRANSITION_1_2_MIN_CONT:
+        if completeness[idx] < constants.TRANSITION_1_2_MIN_COMP:
             continue
 
         stage[idx] = 2
         completeness[idx] = estimates[idx, 0]
         contamination[idx] = estimates[idx, 1]
 
-        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or contamination[idx] < constants.TRANSITION_2_3_MIN_CONT:
+        if completeness[idx] < constants.TRANSITION_2_3_MIN_COMP or contamination[idx] > constants.TRANSITION_2_3_MIN_CONT:
             continue
 
         stage[idx] = 3
@@ -163,9 +166,11 @@ def core(cocopye_db: str,
 
         result.bin_id = bin_ids[idx]
         result.stage = stage[idx]
+        result.method = ["rejected", "markers", "markers + neural network"][stage[idx] - 1]
         result.count_ratio = count_ratio[idx]
         result.knn_scores = knn_scores[idx]
-        result.taxonomy = taxonomy[idx]
+        result.taxonomy = taxonomy[idx][0]
+        result.taxonomy_level = taxonomy[idx][1]
         result.notes = notes[idx]
 
         result.comp_1_bac = preestimates_bac[idx, 0]

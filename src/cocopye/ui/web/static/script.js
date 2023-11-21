@@ -2,17 +2,24 @@ function update_status(message, state) {
     let status = document.getElementById("status");
     status.innerHTML = "";
 
-    if (state == "progress") {
+    if (state === "progress") {
         let spinner = document.createElement("span");
         spinner.classList.add("loading", "loading-spinner", "loading-sm", "mr-4");
         status.appendChild(spinner);
         status.appendChild(document.createTextNode(message));
     }
 
-    if (state == "result") {
+    if (state === "result") {
+        let error = document.getElementById("stage-0-error");
+        error.style.display = "none";
+
+        let method = "-";
+        if(message.stage === 2) method = "markers";
+        if(message.stage === 3) method = "markers, neural network";
+
         document.getElementById("completeness").innerHTML = message.completeness;
         document.getElementById("contamination").innerHTML = message.contamination;
-        document.getElementById("stage").innerHTML = message.stage;
+        document.getElementById("stage").innerHTML = method;
         document.getElementById("taxonomy").innerHTML = message.taxonomy;
 
         let div = document.createElement("div");
@@ -21,12 +28,24 @@ function update_status(message, state) {
         status.appendChild(div);
 
         let results = document.getElementById("results");
+        document.getElementById("upload-btn").removeAttribute("disabled");
+
+        if(message.stage === 1) {
+            error.style.display = "block";
+
+            document.getElementById("completeness").innerHTML ="-";
+            document.getElementById("contamination").innerHTML = "-";
+            document.getElementById("stage").innerHTML = "-";
+            document.getElementById("taxonomy").innerHTML ="-";
+
+            return;
+        }
+
         results.classList.remove("opacity-30");
         results.classList.add("opacity-100");
-        document.getElementById("upload-btn").removeAttribute("disabled");
     }
 
-    if (state == "error") {
+    if (state === "error") {
         let div = document.createElement("div");
         div.classList.add("text-red-700");
         div.appendChild(document.createTextNode(message));

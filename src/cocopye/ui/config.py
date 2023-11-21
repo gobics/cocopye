@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
                             help="File extension of the bin FASTA files (default: fna)")
     run_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
     run_parser.add_argument("-v", "--verbosity", default="standard",
-                            help="Output verbosity (standard, extended, everything; default: standard)")
+                            help="Output verbosity (standard, extended, full; default: standard)")
 
     # Subparser database
 

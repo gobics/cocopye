@@ -37,12 +37,12 @@
           aliquam tempora iusto deleniti sed.
         </div>
         <div class="flex flex-col md:flex-row mt-8 md:mt-16">
-          <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200">
+          <div class="flex flex-row items-center"><a class="btn btn-outline m-2 w-48 bg-gray-200" href="https://github.com/gobics/cocopye/wiki">
               <div style="content: url('icons/Font-Awesome/book.svg'); width: 20px; height: 20px;"></div>GETTING STARTED
-            </button></div>
-          <div class="flex flex-row items-center"><button class="btn btn-outline m-2 w-48 bg-gray-200">
+            </a></div>
+          <div class="flex flex-row items-center"><a class="btn btn-outline m-2 w-48 bg-gray-200" href="https://github.com/gobics/cocopye">
               <div style="content: url('icons/Font-Awesome/github.svg'); width: 20px; height: 20px;"></div>SOURCE
-            </button></div>
+            </a></div>
           {% if contact != "" %}
           <div class="flex flex-row items-center"><a href="{{ contact }}" class="btn btn-outline m-2 w-48 bg-gray-200">
               <div style="content: url('icons/bytesize-icons/mail.svg'); width: 20px; height: 20px;"></div>CONTACT
@@ -76,40 +76,53 @@
 
               <hr class="h-px w-full mb-2 bg-gray-300 border-0">
 
-              <div id="results" class="opacity-30 w-full flex flex-col items-center">
-                <h3 class="text-center text-lg font-bold mt-2">Results</h3>
+              <div style="position: relative" class="w-full">
+                <div id="results" class="opacity-30 w-full flex flex-col items-center">
+                  <h3 class="text-center text-lg font-bold mt-2">Results</h3>
 
-                <div class="p-2 m-2 mt-4 w-3/4 border-solid border-2 border-gray-600">
-                  <table class="table">
-                    <tr>
-                      <td>Completeness estimate</td>
-                      <td id="completeness"><i>-</i></td>
-                    </tr>
-                    <tr>
-                      <td>Contamination estimate</td>
-                      <td id="contamination"><i>-</i></td>
-                    </tr>
-                    <tr>
-                      <td class="flex flex-row items-center">
-                        <div>Confidence Level</div>
-                        <div class="ml-2 tooltip tooltip-top max-sm:hidden"
-                          data-tip="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur">
-                          <div style="content: url('icons/simple-line-icons/question.svg'); width: 18px; height: 18px;"></div>
-                        </div>
-                      </td>
-                      <td id="stage"><i>-</i></td>
-                    </tr>
-                    <tr>
-                      <td class="flex flex-row items-center">
-                        <div>Taxonomy prediction</div>
-                        <div class="ml-2 tooltip tooltip-top max-sm:hidden"
-                          data-tip="Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur">
-                          <div style="content: url('icons/simple-line-icons/question.svg'); width: 18px; height: 18px;"></div>
-                        </div>
-                      </td>
-                      <td id="taxonomy"><i>-</i></td>
-                    </tr>
-                  </table>
+                  <div class="p-2 m-2 mt-4 w-3/4 border-solid border-2 border-gray-600">
+                    <table class="table">
+                      <tr>
+                        <td>Completeness estimate</td>
+                        <td id="completeness"><i>-</i></td>
+                      </tr>
+                      <tr>
+                        <td>Contamination estimate</td>
+                        <td id="contamination"><i>-</i></td>
+                      </tr>
+                      <tr>
+                        <td class="flex flex-row items-center">
+                          <div>Prediction method</div>
+                          <div class="ml-2 tooltip tooltip-top max-sm:hidden"
+                            data-tip="CoCoPyE uses either a marker-based prediction method or a combination of both markers
+                              and a neural network. The combined prediction is more accurate, but it can only be
+                              used if the markers indicate that the query genome is in the working range of the network.">
+                            <div style="content: url('icons/simple-line-icons/question.svg'); width: 18px; height: 18px;"></div>
+                          </div>
+                        </td>
+                        <td id="stage"><i>-</i></td>
+                      </tr>
+                      <tr>
+                        <td class="flex flex-row items-center">
+                          <div>Taxonomy prediction</div>
+                          <div class="ml-2 tooltip tooltip-top max-sm:hidden"
+                            data-tip="CoCoPyE tries to conduct a taxonomical classification based on a consensus between
+                            the nearest neighbors of the query genome.">
+                            <div style="content: url('icons/simple-line-icons/question.svg'); width: 18px; height: 18px;"></div>
+                          </div>
+                        </td>
+                        <td id="taxonomy"><i>-</i></td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+
+                <div id="stage-0-error" style="position: absolute; top: 80px; display: none" class="w-full opacity-100">
+                  <div role="alert" class="alert alert-error" style="background-color: #fd7a81">
+                    <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>The uploaded file was rejected because a first test using universal markers indicated a very low completeness (< 10%) and it would be unlikely for
+                    CoCoPyE to produce reliable results.</span>
+                  </div>
                 </div>
               </div>
             </div>

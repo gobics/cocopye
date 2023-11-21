@@ -256,7 +256,7 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
             result = estimates_njit(self.mat(), self._db_mat, self._k, frac_eq, progress_bar, self._knn_inds)
         return result
 
-    def taxonomy(self) -> Optional[List[str]]:
+    def taxonomy(self) -> Optional[List[Tuple[str, str]]]:
         """
         Use a consensus of the nearest neighbors for a taxonomy estimate. This will return the most specific taxonomic
         rank that is the same for all neighbors.
@@ -276,11 +276,11 @@ class QueryMatrix(Matrix[npt.NDArray[np.uint8]]):
                 if knn_meta[col].isna().any():
                     continue
                 if np.unique(knn_meta[col].to_numpy()).shape[0] == 1:
-                    results.append(knn_meta.iloc[0][col])
+                    results.append((knn_meta.iloc[0][col], col))
                     found = True
                     break
             if not found:
-                results.append("nothing")
+                results.append(("-", "-"))
 
         return results
 

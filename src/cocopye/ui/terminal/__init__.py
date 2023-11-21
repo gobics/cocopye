@@ -148,13 +148,14 @@ def run():
     outfile = open(config.ARGS.outfile, "w")
 
     if config.ARGS.verbosity == "full":
-        outfile.write("bin,stage,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
+        outfile.write("bin,stage,method,1_completeness_arc,1_contamination_arc,1_completeness_bac,1_contamination_bac,"
                       "2_completeness,2_contamination,2_num_markers,3_completeness,3_contamination,"
-                      "coding_density,knn_score,taxonomy,notes\n")
+                      "coding_density,knn_score,taxonomy,taxonomy_level,notes\n")
     elif config.ARGS.verbosity == "extended":
-        outfile.write("bin,completeness,contamination,stage,num_markers,coding_density,knn_score,taxonomy,notes\n")
+        outfile.write("bin,completeness,contamination,stage,method,num_markers,coding_density,knn_score,"
+                      "taxonomy,taxonomy_level,notes\n")
     else:
-        outfile.write("bin,completeness,contamination,stage,taxonomy,notes\n")
+        outfile.write("bin,completeness,contamination,method,taxonomy,taxonomy_level,notes\n")
 
     for result in results:
         outfile.write(result.to_csv(config.ARGS.verbosity) + "\n")

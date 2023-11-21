@@ -11,11 +11,11 @@ RESOLUTION_CONT = {24: 7, 28: 12}
 """Histogram resolution for contamination"""
 
 TRANSITION_1_2_MIN_COMP = 0.1
-TRANSITION_1_2_MIN_CONT = 1.0
 """Minimal completeness to allow a bin to move from stage 1 to 2"""
 TRANSITION_2_3_MIN_COMP = 0.6
-TRANSITION_2_3_MIN_CONT = 0.3
 """Minimal completeness to allow a bin to move from stage 2 to 3"""
+TRANSITION_2_3_MIN_CONT = 0.3
+"""Maximal contamination to allow a bin to move from stage 2 to 3"""
 
 # === DOWNLOAD URLS ====================================================================================================
 
