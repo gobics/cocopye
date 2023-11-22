@@ -1,38 +1,41 @@
 # CoCoPyE
-**Documentation**:  [https://n.birth.pages.gwdg.de/CoCoPyE](https://n.birth.pages.gwdg.de/CoCoPyE)
 
-*You can ignore the certificate error that occurs when opening the documentation.
-This an issue with GitLab Pages that is caused by the dot in my username. It won't be
-a problem anymore once we move this project to GitHub.*
+Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
+provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
+delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
+maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
+iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
+Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
+quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
+ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
+aliquam tempora iusto deleniti sed.
 
-## Installation
+## Getting started
 
-As soon as we publish the tool, it should be installable via PyPI by just running
-`pip install cocopye`. However, currently there are some more steps required.
+CoCoPyE is available via pip and conda (conda-forge channel). See the [project wiki](https://github.com/gobics/cocopye/wiki)
+for installation and usage instructions.
 
-```
-# Clone this repository and change directory
-git clone https://gitlab.gwdg.de/n.birth/CoCoPyE.git
-cd CoCoPyE
+- [Quickstart](https://github.com/gobics/cocopye/wiki/Quickstart)
+- [Installation](https://github.com/gobics/cocopye/wiki/Installation)
+- [Usage](https://github.com/gobics/cocopye/wiki/Usage)
 
-# create venv
-python -m venv .venv
+### Online Demo
 
-# activate venv (use the command for your OS)
-source .venv/bin/activate  # Linux
-.venv/Scripts/activate     # Windows
+You can test CoCoPyE without installation on [our project homepage](https://cocopye.uni-goettingen.de). Please note that the online demo can process only 
+one query genome per request and is less performant than a local installation. Therefore it is highly recommended to use the online
+version only for evaluation purposes and install CoCoPyE on your own machine for productive use.
 
-# install CoCoPyE package
-pip install .
-```
+## Additional notes
 
-## Usage
+### Contact
 
-```
-cocopye run -i <bin folder> -o <outfile>
-```
+For bug reports, suggestions or questions, please open an issue on [GitHub](https://github.com/gobics/cocopye/issues)
+or send an email to [email@example.com](mailto:email@example.com). ***(TODO: Replace by the actual address.)***
 
-On the first run, CoCoPyE needs to download some external files. This won't be necessary on subsequent runs.
+### API documentation
 
-(I will write a more detailed usage guide in the future. but for now this is the most importang command.
-For everything else, you can use the help flag: `cocopye -h` / `cocopye run -h`.)
+You can find the API documentation of the CoCoPyE package on [https://gobics.github.com/cocopye](https://gobics.github.com/cocopye).
+
+### License
+
+CoCoPyE is available under the terms of the GNU General Public License, version 3 or later. See [`COPYING`](https://github.com/gobics/cocopye/blob/master/COPYING) for the full license text.

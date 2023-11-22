@@ -1,3 +1,20 @@
+# Copyright 2023 Niklas Birth
+#
+# This file is part of CoCoPyE.
+#
+# CoCoPyE is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CoCoPyE is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
+
 """
 This module contains functions for checking the applications dependencies (binaries and data) and downloading them if
 needed.
@@ -195,7 +212,11 @@ def download(url: str, dirname: str, fname: str, label: str, chunk_size: int = 1
     :param chunk_size: Download chunk size
     """
     os.makedirs(dirname, exist_ok=True)
-    # https://gist.github.com/yanqd0/c13ed29e29432e3cf3e7c38467f42f51
+
+    # Adapted from https://stackoverflow.com/questions/37573483/progress-bar-while-download-file-over-http-with- \
+    # requests/62113263#62113263
+    # Author: Yan QiDong
+    # License: CC BY-SA 4.0
     resp = requests.get(url, stream=True)
     total = int(resp.headers.get('content-length', 0))
     with open(os.path.join(dirname, fname), 'wb') as file, tqdm(

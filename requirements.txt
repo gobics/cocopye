@@ -20,6 +20,5 @@ uvicorn~=0.22.0
 fastapi~=0.99.1
 python-multipart~=0.0.6
 websockets~=11.0.3
-pandas~=2.1.0
 werkzeug~=3.0.0
 Jinja2~=3.1.2

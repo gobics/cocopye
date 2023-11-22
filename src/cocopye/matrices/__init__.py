@@ -1,3 +1,20 @@
+# Copyright 2023 Niklas Birth
+#
+# This file is part of CoCoPyE.
+#
+# CoCoPyE is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CoCoPyE is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
+
 """
 This module contains several matrix classes that are relevant for our work. They are based on numpy arrays.
 
@@ -12,6 +29,7 @@ A **DatabaseMatrix**, as the name implies, contains the count values of our data
 A DatabaseMatrix can be transformed into a **FeatureMatrix** to get completeness and contamination estimates from the
 neural network.
 """
+
 from __future__ import annotations
 
 import pickle

@@ -9,11 +9,11 @@ version = "0.1.0"
 authors = [
     { name = "Niklas Birth", email = "birth@posteo.de" },
 ]
-#description = "My package description"
+description = "feature-based prediction of genome quality indices"
 readme = "README.md"
 requires-python = ">=3.8"
 #keywords = ["one", "two"]
-#license = {text = "BSD-3-Clause"}
+license = {text = "GPL-3.0-or-later"}
 classifiers = [
     "Programming Language :: Python :: 3",
 ]

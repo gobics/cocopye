@@ -1,3 +1,20 @@
+# Copyright 2023 Niklas Birth
+#
+# This file is part of CoCoPyE.
+#
+# CoCoPyE is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CoCoPyE is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
+
 """
 This module contains several numba functions that are called by functions in the parent module. In fact, these functions
 mostly do the actual work while the matrix classes are just wrappers around them.
