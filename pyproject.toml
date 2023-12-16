@@ -7,9 +7,7 @@ build-backend = "setuptools.build_meta"
 name = "cocopye"
 version = "0.1.0"
 authors = [
-    { name = "Niklas Birth", email = "birth@posteo.de" },
-    { name = "Nicolina Leppich" },
-    { name = "Dr. Peter Meinicke" }
+    { name = "Niklas Birth, Nicolina Leppich, Dr. Peter Meinicke" },
 ]
 maintainers = [
     { name = "Niklas Birth", email = "birth@posteo.de" },
@@ -42,8 +40,8 @@ dependencies = [
 
 [project.urls]
 #Homepage = "https://cocopye.uni-goettingen.de"
-source = "https://github.com/gobics/cocopye"
-documentation = "https://github.com/gobics/cocopye/wiki"
+Source = "https://github.com/gobics/cocopye"
+Documentation = "https://github.com/gobics/cocopye/wiki"
 
 [project.optional-dependencies]
 web = [
