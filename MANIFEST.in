@@ -1,2 +1,3 @@
 recursive-include src/cocopye/ui/web/static *
+recursive-include src/cocopye/ui/web/templates *
 include src/cocopye/ui/config.toml

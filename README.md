@@ -14,7 +14,7 @@ indices than existing tools.
 
 ## Getting started
 
-CoCoPyE is available via pip ~~and conda (conda-forge channel).~~ Coming soon. See the [project wiki](https://github.com/gobics/cocopye/wiki)
+CoCoPyE is available via pip and conda (conda-forge channel). See the [project wiki](https://github.com/gobics/cocopye/wiki)
 for installation and usage instructions.
 
 - [Quickstart](https://github.com/gobics/cocopye/wiki/Quickstart)
@@ -23,7 +23,7 @@ for installation and usage instructions.
 
 ### Online Demo
 
-You can test CoCoPyE without installation on [our project homepage](https://cocopye.uni-goettingen.de). Please note that the online demo can process only 
+You can test CoCoPyE without installation on ~~[our project homepage](https://cocopye.uni-goettingen.de)~~ ***coming soon***. Please note that the online demo can process only 
 one query genome per request and is less performant than a local installation. Therefore it is highly recommended to use the online
 version only for evaluation purposes and install CoCoPyE on your own machine for productive use.
 
@@ -36,7 +36,7 @@ or send an email to [email@example.com](mailto:email@example.com). ***(TODO: Rep
 
 ### API documentation
 
-You can find the API documentation of the CoCoPyE package on [https://gobics.github.com/cocopye](https://gobics.github.com/cocopye).
+You can find the API documentation of the CoCoPyE package on [https://gobics.github.io/cocopye](https://gobics.github.com/cocopye).
 
 ### License
 
