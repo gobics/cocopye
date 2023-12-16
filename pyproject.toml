@@ -4,18 +4,26 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "CoCoPyE"
+name = "cocopye"
 version = "0.1.0"
 authors = [
     { name = "Niklas Birth", email = "birth@posteo.de" },
+    { name = "Nicolina Leppich" },
+    { name = "Dr. Peter Meinicke" }
 ]
-description = "feature-based prediction of genome quality indices"
+maintainers = [
+    { name = "Niklas Birth", email = "birth@posteo.de" },
+]
+description = "Feature-based prediction of genome quality indices"
 readme = "README.md"
 requires-python = ">=3.8"
-#keywords = ["one", "two"]
-license = {text = "GPL-3.0-or-later"}
+keywords = ["bioinformatics", "biology", "microbiology", "metagenomics", "genome", "genome quality"]
+license = { text = "GPL-3.0-or-later" }
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Development Status :: 4 - Beta"
 ]
 dependencies = [
     "numpy>=1.23",
@@ -31,6 +39,11 @@ dependencies = [
     "tqdm~=4.65.0",
     "numba-progress==1.0.0",
 ]
+
+[project.urls]
+#Homepage = "https://cocopye.uni-goettingen.de"
+source = "https://github.com/gobics/cocopye"
+documentation = "https://github.com/gobics/cocopye/wiki"
 
 [project.optional-dependencies]
 web = [

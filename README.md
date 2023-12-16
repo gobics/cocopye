@@ -1,18 +1,20 @@
 # CoCoPyE
 
-Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
-provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
-delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
-maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
-iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
-Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
-quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
-ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
-aliquam tempora iusto deleniti sed.
+**CoCoPyE is a fast tool for quality assessment of microbial genomes. It is able to reliably predict
+completeness and contamination of bacterial and archaeal genomes. Additionally, it can provide a
+taxonomic classification of the input.**
+
+Background: The classical approach for estimation of quality indices solely relies on a relatively small
+number of universal single copy genes. Because these classical markers only cover a small fraction of the
+whole genome the quality assessment can be rather unreliable. Our method is based on a novel
+two-stage feature extraction and transformation scheme. It first performs a flexible extraction
+of genomic markers and then refines the marker-based estimates with a machine learning approach based on
+count-ratio histograms. In our simulation studies CoCoPyE showed a more accurate prediction of  quality
+indices than existing tools.
 
 ## Getting started
 
-CoCoPyE is available via pip and conda (conda-forge channel). See the [project wiki](https://github.com/gobics/cocopye/wiki)
+CoCoPyE is available via pip ~~and conda (conda-forge channel).~~ Coming soon. See the [project wiki](https://github.com/gobics/cocopye/wiki)
 for installation and usage instructions.
 
 - [Quickstart](https://github.com/gobics/cocopye/wiki/Quickstart)

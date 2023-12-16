@@ -26,12 +26,19 @@ along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
 
   <link href="css/daisyui-4.3.1.css" rel="stylesheet" type="text/css" />
   <script src="css/tailwind-3.3.5.css"></script>
+  <style>
+    @media (min-width: 768px) {
+      #heading {
+        width: 87.5%;
+      }
+    }
+  </style>
 </head>
 
 <body class="flex flex-col" style="background-color: #c0e9ff; min-height: 100vh; margin: 0;">
   <header>
     <div class="flex flex-col items-center">
-      <div class="card mt-8 md:w-3/4 m-2 shadow-xl bg-base-100 border-solid border-neutral-400 mb-6" ,
+      <div id="heading" class="card mt-8 m-2 shadow-xl bg-base-100 border-solid border-neutral-400 mb-6" ,
         style="background-color: #204080">
         <div class="card-body">
           <h1 class="text-center text-4xl text-white font-bold">CoCoPyE - feature-based prediction of genome quality
@@ -44,18 +51,20 @@ along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
   <main style="flex: 1 0 auto">
     <div class="grid 2xl:grid-cols-2 grid-cols-1 gap-6 m-2 mt-8">
       <div class="flex flex-col items-center">
-        <div class="md:w-3/4 m-2 text-base text-justify">
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia labore consectetur
-          provident, sunt voluptatem tenetur veritatis facilis suscipit nam harum doloribus
-          delectus eum similique dolor ab ipsam enim soluta aliquid? Molestias perspiciatis,
-          maiores ea dicta sed nesciunt rerum placeat suscipit provident pariatur quis
-          iure exercitationem quisquam! Libero repudiandae odit fugiat error adipisci temporibus.
-          Magni, cumque eveniet. Dolor blanditiis sapiente itaque! Labore soluta aliquam
-          quas eius incidunt voluptatum, iste, nemo voluptas molestiae non recusandae rerum
-          ex vitae architecto totam esse qui quaerat dignissimos odit. Voluptatum repudiandae,
-          aliquam tempora iusto deleniti sed.
+        <div class="md:w-3/4 mb-2 text-base text-justify">
+          <b>CoCoPyE is a fast tool for quality assessment of microbial genomes. It is able to reliably predict
+          completeness and contamination of bacterial and archaeal genomes. Additionally, it can provide a
+          taxonomic classification of the input.</b><br><br>
+
+          Background: The classical approach for estimation of quality indices solely relies on a relatively small
+          number of universal single copy genes. Because these classical markers only cover a small fraction of the
+          whole genome, the quality assessment can be rather unreliable. Our method is based on a novel
+          two-stage feature extraction and transformation scheme. It first performs a flexible extraction
+          of genomic markers and then refines the marker-based estimates with a machine learning approach based on
+          count-ratio histograms. In our simulation studies CoCoPyE showed a more accurate prediction of  quality
+          indices than existing tools.
         </div>
-        <div class="flex flex-col md:flex-row mt-8 md:mt-16">
+        <div class="flex flex-col md:flex-row mt-8">
           <div class="flex flex-row items-center"><a class="btn btn-outline m-2 w-48 bg-gray-200" href="https://github.com/gobics/cocopye/wiki">
               <div style="content: url('icons/Font-Awesome/book.svg'); width: 20px; height: 20px;"></div>GETTING STARTED
             </a></div>
@@ -72,16 +81,16 @@ along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
           <div class="card mt-12 md:w-3/4 shadow-xl bg-base-100 border-solid border-neutral-400 border-0">
             <div class="card-body">
               <h2 class="card-title">Citing CoCoPyE</h2>
-              Niklas Birth, Nicolina Leppich, hier noch mehr Autoren eintragen. 2023.
+              N. Birth, N. Leppich, J. Schirmacher, N. Andreae, R. Steinkamp, M. Blanke, P. Meinicke.
               "CoCoPyE: feature engineering for learning and prediction of genome quality indices".
-              Some great journal.
+              To be published.
             </div>
           </div>
         </div>
       </div>
 
       <div class="flex flex-col items-center">
-        <div class="card shadow-xl card-bordered border-2 bg-white border-solid h-full">
+        <div class="card shadow-xl card-bordered border-2 bg-white border-solid h-full md:w-3/4">
           <div class="card-body flex flex-col items-center">
             <h2 class="card-title justify-center text-2xl">Demo</h2>
             <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>

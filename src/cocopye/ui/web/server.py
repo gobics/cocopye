@@ -145,6 +145,8 @@ def run_server():
     if celery_env["CELERY_TIME_LIMIT"] == "0":
         celery_env["CELERY_TIME_LIMIT"] = "10000000"
 
+    print("Running webserver on http://" + config.CONFIG["server"]["host"] + ":" + str(config.CONFIG["server"]["port"]))
+
     if config.CONFIG["server"]["debug"]:
         subprocess.Popen(
             ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(config.CONFIG["server"]["celery"]["workers"])],
@@ -160,7 +162,7 @@ def run_server():
     else:
         subprocess.Popen(
             ["celery", "-A", "cocopye.ui.web.tasks", "worker", "-c", str(config.CONFIG["server"]["celery"]["workers"]),
-                "--without-heartbeat", "--without-gossip", "--without-mingle"], env=celery_env
+                "--without-heartbeat", "--without-gossip", "--without-mingle"], env=celery_env, stdout=subprocess.DEVNULL
         )
 
         uvicorn.run(
