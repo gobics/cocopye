@@ -32,11 +32,11 @@ version only for evaluation purposes and install CoCoPyE on your own machine for
 ### Contact
 
 For bug reports, suggestions or questions, please open an issue on [GitHub](https://github.com/gobics/cocopye/issues)
-or send an email to [email@example.com](mailto:email@example.com). ***(TODO: Replace by the actual address.)***
+or send an email to [pmeinic@gwdg.de](mailto:pmeinic@gwdg.de).
 
 ### API documentation
 
-You can find the API documentation of the CoCoPyE package on [https://gobics.github.io/cocopye](https://gobics.github.com/cocopye).
+You can find the API documentation of the CoCoPyE package on [https://gobics.github.io/cocopye](https://gobics.github.io/cocopye).
 
 ### License
 
