@@ -47,7 +47,7 @@ function update_status(message, state) {
         let results = document.getElementById("results");
         document.getElementById("upload-btn").removeAttribute("disabled");
 
-        if(message.stage === 1) {
+        if(message.stage === 3) {
             error.style.display = "block";
 
             document.getElementById("completeness").innerHTML ="-";
@@ -67,6 +67,7 @@ function update_status(message, state) {
         div.classList.add("text-red-700");
         div.appendChild(document.createTextNode(message));
         status.appendChild(div);
+        document.getElementById("upload-btn").removeAttribute("disabled");
     }
 }
 
@@ -89,7 +90,8 @@ async function upload() {
     let response = await fetch("/upload", { method: "POST", body: formData });
     let ws_id = await response.json();
 
-    let ws = new WebSocket("ws://" + window.location.host + "/ws/" + ws_id["ws_id"])
+    let ws_prefix = window.location.protocol === "https:" ? "wss://" : "ws://"
+    let ws = new WebSocket(ws_prefix + window.location.host + "/ws/" + ws_id["ws_id"])
     ws.onmessage = function (event) {
         let received = JSON.parse(event.data);
         update_status(received.content, received.status)

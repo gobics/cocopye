@@ -23,7 +23,7 @@ for installation and usage instructions.
 
 ### Online Demo
 
-You can test CoCoPyE without installation on ~~[our project homepage](https://cocopye.uni-goettingen.de)~~ ***coming soon***. Please note that the online demo can process only 
+You can test CoCoPyE without installation on [our project homepage](https://cocopye.uni-goettingen.de). Please note that the online demo can process only 
 one query genome per request and is less performant than a local installation. Therefore it is highly recommended to use the online
 version only for evaluation purposes and install CoCoPyE on your own machine for productive use.
 
