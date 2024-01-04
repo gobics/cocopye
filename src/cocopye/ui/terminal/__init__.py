@@ -51,14 +51,14 @@ def main() -> None:
     if config.ARGS.subcommand in ["run", "database"]:
         set_num_threads(int(config.ARGS.threads))
 
-    if config.ARGS.subcommand == "toolbox":
-        if config.ARGS.subcommand_toolbox == "update-database":
+    if config.ARGS.subcommand == "setup":
+        if config.ARGS.subcommand_setup == "update-database":
             update_cocopye_db(constants.COCOPYE_DB, config.CONFIG["external"]["cocopye_db"])
             sys.exit(0)
-        if config.ARGS.subcommand_toolbox == "cleanup":
+        if config.ARGS.subcommand_setup == "cleanup":
             cleanup()
             sys.exit(0)
-        if config.ARGS.subcommand_toolbox == "testrun":
+        if config.ARGS.subcommand_setup == "testrun":
             with tempfile.TemporaryDirectory() as tmpdir:
                 command = (["cocopye"]
                            + (["--offline"] if config.ARGS.offline else [])
@@ -78,11 +78,11 @@ def main() -> None:
                     print("\n\033[91mTestrun failed.\033[0m")
 
             sys.exit(0)
-        if config.ARGS.subcommand_toolbox == "download-dependencies":
+        if config.ARGS.subcommand_setup == "download-dependencies":
             check_and_download_dependencies()
             sys.exit(0)
         else:
-            print("Unrecognized subcommand. Exiting.")
+            print("Unrecognized subcommand. See 'cocopye setup -h' for a list of available subcommands.")
             sys.exit(1)
 
     check_and_download_dependencies(check_only=True)
