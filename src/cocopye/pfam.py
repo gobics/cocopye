@@ -20,7 +20,7 @@ import os
 import subprocess
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -39,7 +39,7 @@ def count_pfams(
         file_extension: str = "fna",
         num_threads: int = 8,
         print_progress: bool = True
-) -> Tuple[npt.NDArray[np.uint8], List[str], List[float]]:
+) -> Optional[Tuple[npt.NDArray[np.uint8], List[str], List[float]]]:
     """
     This function takes a directory with bins in FASTA format and creates a Pfam count matrix. Each FASTA file is
     considered to be one bin. Sequence headers inside the files (most likely contig ids) are ignored.
@@ -59,6 +59,11 @@ def count_pfams(
     extension) in the same order as they appear in the QueryMatrix. The third element is a list of count-ratios of the
     input bins (number of pfams divided by bin size).
     """
+    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
+
+    if len(bins) == 0:
+        return None
+
     process_orf = subprocess.Popen(
         orf_bin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
     )
@@ -71,8 +76,6 @@ def count_pfams(
     )
 
     count_pfams_async = ThreadPool(processes=1).apply_async(_count_pfams, (process_prot.stdout,))
-
-    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
 
     lengths = {}
 

@@ -16,6 +16,7 @@
 # along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import sys
 from datetime import datetime
 from typing import List, Dict
 
@@ -106,7 +107,7 @@ def core(cocopye_db: str,
         pd.read_csv(os.path.join(cocopye_db, pfam_version, "metadata.csv"), sep=",")
     )
 
-    query_mat, bin_ids, count_ratio = count_pfams(
+    pfam_result = count_pfams(
         uproc_orf,
         uproc_prot,
         os.path.join(pfam_db, pfam_version),
@@ -116,6 +117,13 @@ def core(cocopye_db: str,
         num_threads,
         print_progress
     )
+
+    if pfam_result is None:
+        print("\nError: No input file with extension " + file_extension + " found.")
+        print("You can use --file-extension to specify a different one. Exiting.")
+        sys.exit(1)
+
+    query_mat, bin_ids, count_ratio = pfam_result
 
     log("Determining nearest neighbors", print_progress)
     query_mat = QueryMatrix(query_mat).with_database(db_mat, constants.K)
