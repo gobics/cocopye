@@ -43,8 +43,8 @@ def init() -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="cocopye",
-        description="A description",
-        epilog="Text at the bottom of help"
+        description="Feature-based prediction of genome quality indices",
+        epilog="See https://github.com/gobics/cocopye/wiki for more detailed usage instructions."
     )
 
     parser.add_argument("--pfam24", action='store_true',
@@ -65,10 +65,12 @@ def parse_args() -> argparse.Namespace:
 
     run_parser.add_argument("-i", "--infolder", required=True,
                             help="Input folder containing bins in FASTA format")
-    run_parser.add_argument("-o", "--outfile", required=True, help="Output file")
+    run_parser.add_argument("-o", "--outfile", default="cocopye_output.csv",
+                            help="Output file (default: cocopye_output.csv)")
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
-    run_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
+    run_parser.add_argument("-t", "--threads", default="8",
+                            help="Number of threads")
     run_parser.add_argument("-v", "--verbosity", default="standard",
                             help="Output verbosity (standard, extended, full; default: standard)")
 
