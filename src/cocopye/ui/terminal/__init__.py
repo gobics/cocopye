@@ -48,6 +48,8 @@ def main() -> None:
         print("Welcome to CoCoPyE.\n")
 
     config.init()
+    print("Using configuration file at " + config.CONFIG_FILE + ".\n")
+
     if config.ARGS.subcommand in ["run", "database"]:
         set_num_threads(int(config.ARGS.threads))
 

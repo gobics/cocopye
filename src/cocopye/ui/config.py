@@ -73,6 +73,8 @@ def parse_args() -> argparse.Namespace:
                             help="Number of threads")
     run_parser.add_argument("-v", "--verbosity", default="standard",
                             help="Output verbosity (standard, extended, full; default: standard)")
+    run_parser.add_argument("--pfam24", action='store_true', dest="pfam24_run",
+                            help="Use Pfam database version 24 (instead of 28)")
 
     # Subparser database
 
@@ -100,9 +102,16 @@ def parse_args() -> argparse.Namespace:
 
     subparsers_toolbox.add_parser("update-database", help="Update CoCoPyE database")
     subparsers_toolbox.add_parser("cleanup", help="Remove automatically downloaded/generated files")
-    subparsers_toolbox.add_parser("testrun", help="Start a testrun to ensure everything works as expected")
+
+    testrun_subparser = subparsers_toolbox.add_parser("testrun",
+                                                      help="Start a testrun to ensure everything works as expected")
+    testrun_subparser.add_argument("--pfam24", action='store_true', dest="pfam24_testrun",
+                                   help="Use Pfam database version 24 (instead of 28)")
+
     dl_subparser = subparsers_toolbox.add_parser("download-dependencies", help="Download missing dependencies")
     dl_subparser.add_argument("-v", "--verbose", action='store_true', help="Show output of subprocesses")
+    dl_subparser.add_argument("--pfam24", action='store_true', dest="pfam24_dl",
+                              help="Use Pfam database version 24 (instead of 28)")
 
     # Subparser web
 
@@ -113,7 +122,21 @@ def parse_args() -> argparse.Namespace:
             description="Start webserver"
         )
 
-    return parser.parse_args()
+    return _merge_flag(parser.parse_args(), "pfam24")
+
+
+def _merge_flag(parsed, flag):
+    parsed_dict = vars(parsed)
+    keys = [key for key in parsed_dict.keys() if flag in key]
+
+    setattr(parsed, flag, any([parsed_dict[key] for key in keys]))
+
+    for key in keys:
+        if key == flag:
+            continue
+        delattr(parsed, key)
+
+    return parsed
 
 
 def parse_config() -> Tuple[str, TOMLDocument]:

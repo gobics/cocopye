@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cocopye"
-version = "0.1.3"
+version = "0.2.0"
 authors = [
     { name = "Niklas Birth, Nicolina Leppich, Dr. Peter Meinicke" },
 ]
@@ -38,7 +38,7 @@ dependencies = [
 ]
 
 [project.urls]
-#Homepage = "https://cocopye.uni-goettingen.de"
+Homepage = "https://cocopye.uni-goettingen.de"
 Source = "https://github.com/gobics/cocopye"
 Documentation = "https://github.com/gobics/cocopye/wiki"
 
