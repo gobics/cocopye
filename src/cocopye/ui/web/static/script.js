@@ -47,7 +47,7 @@ function update_status(message, state) {
         let results = document.getElementById("results");
         document.getElementById("upload-btn").removeAttribute("disabled");
 
-        if(message.stage === 3) {
+        if(message.stage === 1) {
             error.style.display = "block";
 
             document.getElementById("completeness").innerHTML ="-";

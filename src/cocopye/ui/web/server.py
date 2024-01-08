@@ -77,12 +77,11 @@ async def ws_endpoint(ws: WebSocket, client_id: str):
     infile = os.listdir(infolder)[0]
 
     await ws.send_json({"status": "progress", "content": "Checking input file"})
-    for record in SeqIO.parse(os.path.join(infolder, infile), "fasta"):
-        if any(c not in "ACGTN" for c in record.seq):
-            await ws.send_json({"status": "error", "content": "Invalid input file."})
-            await ws.close()
-            shutil.rmtree(infolder)
-            return
+    if invalid_fasta(os.path.join(infolder, infile)):
+        await ws.send_json({"status": "error", "content": "Invalid input file."})
+        await ws.close()
+        shutil.rmtree(infolder)
+        return
 
     log("Starting new task")
     task = estimate_task.delay(
@@ -129,6 +128,21 @@ def log(message: str):
     f = open(os.path.join(CONFIG["server"]["logdir"], "server.log"), "a")
     f.write("[" + str(datetime.now()) + "] " + message + "\n")
     f.close()
+
+
+def invalid_fasta(file_path):
+    empty = True
+    invalid = False
+
+    try:
+        for record in SeqIO.parse(file_path, "fasta"):
+            empty = False
+            if any(c not in "ACGTNacgtn" for c in record.seq):
+                invalid = True
+    except Exception:
+        invalid = True
+
+    return empty or invalid
 
 
 def run_server():
