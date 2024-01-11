@@ -61,8 +61,8 @@ def check_and_download_dependencies(check_only: bool = False) -> None:
     if len(missing) > 0:
         if check_only:
             print("\nSome dependencies are missing.")
-            print("If you have already downlaoded them, you can specify their path in the configuration file.")
-            print("You can also use 'cocopye toolbox download-dependencies' to automatically download missing files.")
+            print("If you have already downloaded them, you can specify their path in the configuration file.")
+            print("You can also use 'cocopye setup download-dependencies' to automatically download missing files.")
             sys.exit(1)
         if config.ARGS.offline:
             print("You are in offline mode. Disable it if you want to use the automatic download.")
@@ -109,7 +109,7 @@ def check_dependencies() -> Tuple[List[str], List[str], List[str]]:
 
     if "outdated" in checks[3][2]:
         print("New CoCoPyE database release available.")
-        print("You can update the database by running \"cocopye toolbox --update-database\".\n")
+        print("You can update the database by running \"cocopye setup update-database\".\n")
 
     return status[0], status[1], status[2]
 

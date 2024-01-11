@@ -22,6 +22,7 @@ import argparse
 from importlib import resources
 from typing import Tuple
 
+import numba
 from appdirs import user_config_dir, user_cache_dir, user_log_dir
 from tomlkit import parse, dumps, TOMLDocument
 
@@ -69,7 +70,7 @@ def parse_args() -> argparse.Namespace:
                             help="Output file (default: cocopye_output.csv)")
     run_parser.add_argument("--file-extension", default="fna",
                             help="File extension of the bin FASTA files (default: fna)")
-    run_parser.add_argument("-t", "--threads", default="8",
+    run_parser.add_argument("-t", "--threads", default=str(min(8, numba.config.NUMBA_NUM_THREADS)),
                             help="Number of threads")
     run_parser.add_argument("-v", "--verbosity", default="standard",
                             help="Output verbosity (standard, extended, full; default: standard)")
@@ -88,7 +89,8 @@ def parse_args() -> argparse.Namespace:
         db_parser.add_argument("-i", "--infolder", required=True)
         db_parser.add_argument("-m", "--metadata", required=True)
         db_parser.add_argument("-o", "--outfolder", required=True)
-        db_parser.add_argument("-t", "--threads", default="8", help="Number of threads")
+        db_parser.add_argument("-t", "--threads", default=str(min(8, numba.config.NUMBA_NUM_THREADS)),
+                               help="Number of threads")
 
     # Subparser toolbox
 
