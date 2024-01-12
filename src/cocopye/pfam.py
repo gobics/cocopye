@@ -36,7 +36,7 @@ def count_pfams(
         pfam_dir: str,
         model_dir: str,
         bin_folder: str,
-        file_extension: str = "fna",
+        file_extensions: List[str],
         num_threads: int = 8,
         print_progress: bool = True
 ) -> Optional[Tuple[npt.NDArray[np.uint8], List[str], List[float]]]:
@@ -49,8 +49,8 @@ def count_pfams(
     :param pfam_dir: Path to the UProC Pfam database directory
     :param model_dir: Path to UProC model directory
     :param bin_folder: Folder containing input bins in FASTA format
-    :param file_extension: File extension of the input FASTA files. Probably something like .fna or .fasta. Each file in
-    the bin folder that has this extension is considered a bin.
+    :param file_extensions: A list of allowed file extensions of the input FASTA files. Probably something like .fna or
+    .fasta. Each file in the bin folder that has on of these extensions is considered a bin.
     :param num_threads: Number of threads that UProC should use. It is possible (and likely) that UProC ignores this
     parameter, but you can try.
     :param print_progress: Print a progress bar to stdout
@@ -59,7 +59,7 @@ def count_pfams(
     extension) in the same order as they appear in the QueryMatrix. The third element is a list of count-ratios of the
     input bins (number of pfams divided by bin size).
     """
-    bins = [file.rpartition(".")[0] for file in os.listdir(bin_folder) if file.rpartition(".")[2] == file_extension]
+    bins = [file for file in os.listdir(bin_folder) if file.rpartition(".")[2] in file_extensions]
 
     if len(bins) == 0:
         return None
@@ -79,13 +79,14 @@ def count_pfams(
 
     lengths = {}
 
-    for bin_id in tqdm(
+    for bin_file in tqdm(
             bins,
             ncols=0,
             desc="\033[0;37m[" + str(datetime.now()) + "]\033[0m Counting Pfams",
             disable=not print_progress
     ):
-        for record in SeqIO.parse(os.path.join(bin_folder, bin_id + "." + file_extension), "fasta"):
+        bin_id = bin_file.rpartition(".")[0]
+        for record in SeqIO.parse(os.path.join(bin_folder, bin_file), "fasta"):
             lengths[bin_id] = len(str(record.seq))
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")
             process_orf.stdin.write(str(record.seq) + "\n")

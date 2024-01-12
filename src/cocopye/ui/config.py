@@ -68,8 +68,8 @@ def parse_args() -> argparse.Namespace:
                             help="Input folder containing bins in FASTA format")
     run_parser.add_argument("-o", "--outfile", default="cocopye_output.csv",
                             help="Output file (default: cocopye_output.csv)")
-    run_parser.add_argument("--file-extension", default="fna",
-                            help="File extension of the bin FASTA files (default: fna)")
+    run_parser.add_argument("--file-extensions", default="fasta,fna,fa",
+                            help="Allowed file extensions for the FASTA files (default: fasta,fna,fa)")
     run_parser.add_argument("-t", "--threads", default=str(min(8, numba.config.NUMBA_NUM_THREADS)),
                             help="Number of threads")
     run_parser.add_argument("-v", "--verbosity", default="standard",

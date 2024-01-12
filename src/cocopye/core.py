@@ -95,7 +95,7 @@ def core(cocopye_db: str,
          uproc_model: str,
          infolder: str,
          pfam_version: int,
-         file_extension: str,
+         file_extensions: List[str],
          num_threads: int,
          print_progress: bool = True
          ) -> List[Result]:
@@ -113,13 +113,13 @@ def core(cocopye_db: str,
         os.path.join(pfam_db, pfam_version),
         uproc_model,
         infolder,
-        file_extension,
+        file_extensions,
         num_threads,
         print_progress
     )
 
     if pfam_result is None:
-        print("\nError: No input file with extension " + file_extension + " found.")
+        print("\nError: No input file with extensions " + str(file_extensions) + " found.")
         print("You can use --file-extension to specify a different one. Exiting.")
         sys.exit(1)
 

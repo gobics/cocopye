@@ -47,7 +47,7 @@ def estimate_task(self, config, pfam_version: int, infolder: str, debug: bool = 
                        config["external"]["uproc_models"],
                        infolder,
                        pfam_version,
-                       "fna",
+                       ["fna"],
                        1,
                        print_progress=debug
                        )[0]

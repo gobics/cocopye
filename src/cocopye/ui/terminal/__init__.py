@@ -159,7 +159,7 @@ def run():
                         config.CONFIG["external"]["uproc_models"],
                         config.ARGS.infolder,
                         24 if config.ARGS.pfam24 else 28,
-                        config.ARGS.file_extension,
+                        config.ARGS.file_extensions.split(","),
                         config.ARGS.threads
                         )
 
