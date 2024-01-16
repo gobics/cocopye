@@ -17,7 +17,7 @@
 
 # === HYPERPARAMETERS ==================================================================================================
 
-K = 4
+K = 9
 """Number of nearest neighbors"""
 FRAC_EQ = 1.0
 """Fraction of counts that have to be the same in all neighbors for a Pfam to be considered as a marker"""
