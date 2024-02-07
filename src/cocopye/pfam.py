@@ -86,8 +86,9 @@ def count_pfams(
             disable=not print_progress
     ):
         bin_id = bin_file.rpartition(".")[0]
+        lengths[bin_id] = 0
         for record in SeqIO.parse(os.path.join(bin_folder, bin_file), "fasta"):
-            lengths[bin_id] = len(str(record.seq))
+            lengths[bin_id] += len(str(record.seq))
             process_orf.stdin.write(">" + bin_id + "$$" + record.id + "\n")
             process_orf.stdin.write(str(record.seq) + "\n")
 
