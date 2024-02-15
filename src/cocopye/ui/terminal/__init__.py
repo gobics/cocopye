@@ -44,11 +44,15 @@ def main() -> None:
     """
     try:
         print("Welcome to CoCoPyE v" + pkg_resources.get_distribution('CoCoPyE').version + ".\n")
+        os.environ["COCOPYE_VERSION"] = pkg_resources.get_distribution('CoCoPyE').version
     except pkg_resources.DistributionNotFound:
         print("Welcome to CoCoPyE.\n")
+        os.environ["COCOPYE_VERSION"] = "0.0.0"
 
     config.init()
     print("Using configuration file at " + config.CONFIG_FILE + ".\n")
+
+    os.environ["COCOPYE_PFAMVERSION"] = "24" if config.ARGS.pfam24 else "28"
 
     if config.ARGS.subcommand in ["run", "database"]:
         set_num_threads(int(config.ARGS.threads))

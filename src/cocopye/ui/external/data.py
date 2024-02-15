@@ -68,6 +68,7 @@ def check_cocopye_db(db_dir: str, offline: bool = False) -> Tuple[int, str, str]
 
     if result_24 == "found" and result_28 == "found":
         version = open(os.path.join(db_dir, "version.txt"), "r").read().strip()
+        os.environ["COCOPYE_DBVERSION"] = version
         if not offline and new_db_version_available(version):
             return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _yellow(version + " (outdated)")
         return 0, "cocopye_db", _TICK + " CoCoPyE database\t" + _green(version)

@@ -55,6 +55,15 @@ async def root(request: Request):
     )
 
 
+@app.get("/version")
+async def version(request: Request):
+    return {
+        "version": os.getenv("COCOPYE_VERSION"),
+        "db_version": os.getenv("COCOPYE_DBVERSION"),
+        "pfam_version": os.getenv("COCOPYE_PFAMVERSION")
+    }
+
+
 @app.post("/upload")
 async def upload(file: UploadFile):
     ws_id = str(uuid.uuid4())
