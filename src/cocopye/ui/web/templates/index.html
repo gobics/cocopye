@@ -95,7 +95,10 @@ along with CoCoPyE. If not, see <https://www.gnu.org/licenses/>.
             <h2 class="card-title justify-center text-2xl">Demo</h2>
             <div class="text-center">Upload a FASTA file and let CoCoPyE calculate completeness and contamination.</div>
             <div class="form-control w-full flex flex-col items-center">
-              <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs m-2" />
+              <div class="flex flex-row items-center m-2">
+                <input id="file" type="file" class="file-input file-input-bordered file-input-sm w-full max-w-xs mr-6" />
+                <a href="example_data.zip" class="btn btn-outline btn-xs w-48 bg-gray-200 border-gray-400">Download example data</a>
+              </div>
               <div class="text-xs text-gray-600">Upload limit: {{ limit }}</div>
               <button id="upload-btn"
                 class="btn btn-outline btn-sm m-2 mt-4 w-48 bg-gray-200 border-gray-400">UPLOAD</button>
